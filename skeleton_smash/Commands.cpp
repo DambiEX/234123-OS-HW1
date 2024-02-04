@@ -18,9 +18,10 @@ using namespace std;
 #else
 #define FUNC_ENTRY()
 #define FUNC_EXIT()
-#define WHITESPACE " \t\n\r\f\v"
+
 #endif
 
+const std::string WHITESPACE = " \n\r\t\f\v";
 string _ltrim(const std::string& s)
 {
   size_t start = s.find_first_not_of(WHITESPACE);
@@ -118,7 +119,6 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
 void SmallShell::executeCommand(const char *cmd_line) {
   // TODO: Add your implementation here
   // for example:
-
       Command *cmd = CreateCommand(cmd_line);
       cmd->execute();
 
