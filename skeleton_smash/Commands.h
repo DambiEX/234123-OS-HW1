@@ -204,7 +204,7 @@ public:
     ~SmallShell();
 
     std::string executeCommand(const char *cmd_line);
-    void setCurrentPrompt(const std::string &new_prompt);
+    void setCurrentPrompt(std::string &new_prompt);
     const std::string &getCurrentPrompt() const;
 };
 
