@@ -3,6 +3,8 @@
 
 #include <vector>
 
+#define DEFAULT_PROMPT std::string("smash")
+#define PROMPT_SUFFIX std::string("> ")
 #define COMMAND_ARGS_MAX_LENGTH (200)
 #define COMMAND_MAX_ARGS (20)
 
@@ -13,7 +15,7 @@ public:
 
     virtual ~Command() = default;
 
-    virtual void execute() = 0;
+    virtual std::string execute() = 0;
     //virtual void prepare();
     //virtual void cleanup();
     // TODO: Add your extra methods if needed
@@ -32,7 +34,7 @@ public:
 
     virtual ~ExternalCommand() {}
 
-    void execute() override;
+    std::string execute() override;
 };
 
 class PipeCommand : public Command {
@@ -42,7 +44,7 @@ public:
 
     virtual ~PipeCommand() {}
 
-    void execute() override;
+    std::string execute() override;
 };
 
 class RedirectionCommand : public Command {
@@ -52,9 +54,18 @@ public:
 
     virtual ~RedirectionCommand() {}
 
-    void execute() override;
+    std::string execute() override;
     //void prepare() override;
     //void cleanup() override;
+};
+
+class ChangePromptCommand : public BuiltInCommand {
+public:
+    ChangePromptCommand(const char *cmd_line, std::string *newPrompt) : BuiltInCommand(cmd_line) {};
+
+    virtual ~ChangePromptCommand() {}
+
+    std::string execute() override;
 };
 
 class ChangeDirCommand : public BuiltInCommand {
@@ -63,7 +74,7 @@ class ChangeDirCommand : public BuiltInCommand {
 
     virtual ~ChangeDirCommand() {}
 
-    void execute() override;
+    std::string execute() override;
 };
 
 class GetCurrDirCommand : public BuiltInCommand {
@@ -72,7 +83,7 @@ public:
 
     virtual ~GetCurrDirCommand() {}
 
-    void execute() override;
+    std::string execute() override;
 };
 
 class ShowPidCommand : public BuiltInCommand {
@@ -81,7 +92,7 @@ public:
 
     virtual ~ShowPidCommand() {}
 
-    void execute() override;
+    std::string execute() override;
 };
 
 class JobsList;
@@ -92,7 +103,7 @@ class QuitCommand : public BuiltInCommand {
 
     virtual ~QuitCommand() {}
 
-    void execute() override;
+    std::string execute() override;
 };
 
 
@@ -132,7 +143,7 @@ public:
 
     virtual ~JobsCommand() {}
 
-    void execute() override;
+    std::string execute() override;
 };
 
 class KillCommand : public BuiltInCommand {
@@ -142,7 +153,7 @@ public:
 
     virtual ~KillCommand() {}
 
-    void execute() override;
+    std::string execute() override;
 };
 
 class ForegroundCommand : public BuiltInCommand {
@@ -152,7 +163,7 @@ public:
 
     virtual ~ForegroundCommand() {}
 
-    void execute() override;
+    std::string execute() override;
 };
 
 class ChmodCommand : public BuiltInCommand {
@@ -161,15 +172,18 @@ public:
 
     virtual ~ChmodCommand() {}
 
-    void execute() override;
+    std::string execute() override;
 };
 
 
 class SmallShell {
 private:
     // TODO: Add your data members
-    SmallShell();
+    std::string current_prompt;
+    SmallShell() : current_prompt(), smash_pid() {setCurrentPrompt(DEFAULT_PROMPT);}; // ctor
     pid_t smash_pid;
+
+    void setCurrentPrompt(const std::string &new_prompt);
 public:
     Command *CreateCommand(const char *cmd_line);
 
@@ -184,8 +198,8 @@ public:
 
     ~SmallShell();
 
-    void executeCommand(const char *cmd_line);
-    // TODO: add extra methods as needed
+    std::string executeCommand(const char *cmd_line);
+    const std::string &getCurrentPrompt() const;
 };
 
 #endif //SMASH_COMMAND_H_

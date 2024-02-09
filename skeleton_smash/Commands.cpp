@@ -89,11 +89,11 @@ SmallShell::~SmallShell() {
 /**
 * Creates and returns a pointer to Command class which matches the given command line (cmd_line)
 */
-void ShowPidCommand::execute() {
+std::string ShowPidCommand::execute() {
     cout << "smash pid is " << getpid() << endl;
 }
 
-Command * SmallShell::CreateCommand(const char* cmd_line) {
+Command* SmallShell::CreateCommand(const char* cmd_line) {
 
   string cmd_s = _trim(string(cmd_line));
   string firstWord = cmd_s.substr(0, cmd_s.find_first_of(" \n"));
@@ -104,6 +104,8 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
   else */if (firstWord.compare("showpid") == 0) {
     return new ShowPidCommand(cmd_line);
   }
+  else if (firstWord.compare("chprompt") == 0) {
+        return ChangePromptCommandWrapper(new ChangePromptCommand(cmd_line, &cmd_s));}
   /*
   else if ...
   .....
@@ -115,12 +117,23 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
   return nullptr;
 }
 
-void SmallShell::executeCommand(const char *cmd_line) {
+std::string SmallShell::executeCommand(const char *cmd_line) {
   // TODO: Add your implementation here
   // for example:
 
       Command *cmd = CreateCommand(cmd_line);
-      cmd->execute();
+      std::string return_value = cmd->execute();
 
   // Please note that you must fork smash process for some commands (e.g., external commands....)
+}
+
+const string &SmallShell::getCurrentPrompt() const {
+    return current_prompt;
+}
+
+void SmallShell::setCurrentPrompt(const string &new_prompt) {
+    if (new_prompt.empty())
+        current_prompt = DEFAULT_PROMPT + PROMPT_SUFFIX;
+    else
+        current_prompt = new_prompt + PROMPT_SUFFIX;
 }
