@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
-#include <sys/wait.h>
+//#include <sys/wait.h>
 #include <iomanip>
 #include "Commands.h"
 
@@ -78,9 +78,7 @@ void _removeBackgroundSign(char* cmd_line) {
 
 // TODO: Add your implementation for classes in Commands.h 
 
-SmallShell::SmallShell() {
-// TODO: add your implementation
-}
+SmallShell::SmallShell() : current_prompt(), smash_pid() {setCurrentPrompt(DEFAULT_PROMPT);}
 
 SmallShell::~SmallShell() {
 // TODO: add your implementation
@@ -89,7 +87,7 @@ SmallShell::~SmallShell() {
 /**
 * Creates and returns a pointer to Command class which matches the given command line (cmd_line)
 */
-std::string ShowPidCommand::execute() {
+void ShowPidCommand::execute() {
     cout << "smash pid is " << getpid() << endl;
 }
 
@@ -102,10 +100,10 @@ Command* SmallShell::CreateCommand(const char* cmd_line) {
     return new GetCurrDirCommand(cmd_line);
   }
   else */if (firstWord.compare("showpid") == 0) {
-    return new ShowPidCommand(cmd_line);
+    return new ShowPidCommand(cmd_line, this);
   }
   else if (firstWord.compare("chprompt") == 0) {
-        return ChangePromptCommandWrapper(new ChangePromptCommand(cmd_line, &cmd_s));}
+        return new ChangePromptCommand(cmd_line, this, &cmd_s);}
   /*
   else if ...
   .....
@@ -122,7 +120,7 @@ std::string SmallShell::executeCommand(const char *cmd_line) {
   // for example:
 
       Command *cmd = CreateCommand(cmd_line);
-      std::string return_value = cmd->execute();
+      cmd->execute();
 
   // Please note that you must fork smash process for some commands (e.g., external commands....)
 }
@@ -136,4 +134,8 @@ void SmallShell::setCurrentPrompt(const string &new_prompt) {
         current_prompt = DEFAULT_PROMPT + PROMPT_SUFFIX;
     else
         current_prompt = new_prompt + PROMPT_SUFFIX;
+}
+
+void ChangePromptCommand::execute() {
+    smash->setCurrentPrompt(new_prompt);
 }

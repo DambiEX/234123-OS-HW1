@@ -2,12 +2,14 @@
 #define SMASH_COMMAND_H_
 
 #include <vector>
+#include <string.h>
 
 #define DEFAULT_PROMPT std::string("smash")
 #define PROMPT_SUFFIX std::string("> ")
 #define COMMAND_ARGS_MAX_LENGTH (200)
 #define COMMAND_MAX_ARGS (20)
 
+class SmallShell;
 class Command {
     std::string cmd_line;
 public:
@@ -15,15 +17,17 @@ public:
 
     virtual ~Command() = default;
 
-    virtual std::string execute() = 0;
+    virtual void execute() = 0;
     //virtual void prepare();
     //virtual void cleanup();
     // TODO: Add your extra methods if needed
 };
 
 class BuiltInCommand : public Command {
+protected:
+    SmallShell* smash;
 public:
-    BuiltInCommand(const char *cmd_line) : Command(cmd_line) {}
+    BuiltInCommand(const char *cmd_line, SmallShell* smash) : Command(cmd_line), smash(smash) {};
 
     virtual ~BuiltInCommand() {}
 };
@@ -34,7 +38,7 @@ public:
 
     virtual ~ExternalCommand() {}
 
-    std::string execute() override;
+    void execute() override;
 };
 
 class PipeCommand : public Command {
@@ -44,7 +48,7 @@ public:
 
     virtual ~PipeCommand() {}
 
-    std::string execute() override;
+    void execute() override;
 };
 
 class RedirectionCommand : public Command {
@@ -54,18 +58,20 @@ public:
 
     virtual ~RedirectionCommand() {}
 
-    std::string execute() override;
+    void execute() override;
     //void prepare() override;
     //void cleanup() override;
 };
 
 class ChangePromptCommand : public BuiltInCommand {
+private:
+    std::string new_prompt;
 public:
-    ChangePromptCommand(const char *cmd_line, std::string *newPrompt) : BuiltInCommand(cmd_line) {};
+    ChangePromptCommand(const char *cmd_line, SmallShell* smash, std::string *newPrompt) : BuiltInCommand(cmd_line, smash), new_prompt(*newPrompt){};
 
     virtual ~ChangePromptCommand() {}
 
-    std::string execute() override;
+    void execute() override;
 };
 
 class ChangeDirCommand : public BuiltInCommand {
@@ -74,7 +80,7 @@ class ChangeDirCommand : public BuiltInCommand {
 
     virtual ~ChangeDirCommand() {}
 
-    std::string execute() override;
+    void execute() override;
 };
 
 class GetCurrDirCommand : public BuiltInCommand {
@@ -83,16 +89,16 @@ public:
 
     virtual ~GetCurrDirCommand() {}
 
-    std::string execute() override;
+    void execute() override;
 };
 
 class ShowPidCommand : public BuiltInCommand {
 public:
-    ShowPidCommand(const char *cmd_line) : BuiltInCommand(cmd_line) {}
+    ShowPidCommand(const char *cmd_line, SmallShell* smash) : BuiltInCommand(cmd_line, smash) {}
 
     virtual ~ShowPidCommand() {}
 
-    std::string execute() override;
+    void execute() override;
 };
 
 class JobsList;
@@ -103,7 +109,7 @@ class QuitCommand : public BuiltInCommand {
 
     virtual ~QuitCommand() {}
 
-    std::string execute() override;
+    void execute() override;
 };
 
 
@@ -143,7 +149,7 @@ public:
 
     virtual ~JobsCommand() {}
 
-    std::string execute() override;
+    void execute() override;
 };
 
 class KillCommand : public BuiltInCommand {
@@ -153,7 +159,7 @@ public:
 
     virtual ~KillCommand() {}
 
-    std::string execute() override;
+    void execute() override;
 };
 
 class ForegroundCommand : public BuiltInCommand {
@@ -163,7 +169,7 @@ public:
 
     virtual ~ForegroundCommand() {}
 
-    std::string execute() override;
+    void execute() override;
 };
 
 class ChmodCommand : public BuiltInCommand {
@@ -172,7 +178,7 @@ public:
 
     virtual ~ChmodCommand() {}
 
-    std::string execute() override;
+    void execute() override;
 };
 
 
@@ -180,10 +186,9 @@ class SmallShell {
 private:
     // TODO: Add your data members
     std::string current_prompt;
-    SmallShell() : current_prompt(), smash_pid() {setCurrentPrompt(DEFAULT_PROMPT);}; // ctor
+    SmallShell(); // ctor
     pid_t smash_pid;
 
-    void setCurrentPrompt(const std::string &new_prompt);
 public:
     Command *CreateCommand(const char *cmd_line);
 
@@ -199,6 +204,7 @@ public:
     ~SmallShell();
 
     std::string executeCommand(const char *cmd_line);
+    void setCurrentPrompt(const std::string &new_prompt);
     const std::string &getCurrentPrompt() const;
 };
 
