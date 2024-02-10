@@ -78,7 +78,7 @@ void _removeBackgroundSign(char* cmd_line) {
 
 // TODO: Add your implementation for classes in Commands.h 
 
-SmallShell::SmallShell() : current_prompt(), smash_pid() {setCurrentPrompt(DEFAULT_PROMPT);}
+SmallShell::SmallShell() : current_prompt(), smash_pid() {setCurrentPrompt();}
 
 SmallShell::~SmallShell() {
 // TODO: add your implementation
