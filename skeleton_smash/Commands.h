@@ -29,7 +29,7 @@ protected:
 public:
     BuiltInCommand(const char *cmd_line, SmallShell* smash) : Command(cmd_line), smash(smash) {};
 
-    virtual ~BuiltInCommand() {}
+    ~BuiltInCommand() override = default;
 };
 
 class ExternalCommand : public Command {
