@@ -4,8 +4,8 @@
 #include <vector>
 #include <string.h>
 
-#define DEFAULT_PROMPT "smash"
-#define PROMPT_SUFFIX "> "
+#define DEFAULT_PROMPT std::string("smash")
+#define PROMPT_SUFFIX std::string("> ")
 #define COMMAND_ARGS_MAX_LENGTH (200)
 #define COMMAND_MAX_ARGS (20)
 
@@ -204,7 +204,7 @@ public:
     ~SmallShell();
 
     std::string executeCommand(const char *cmd_line);
-    void setCurrentPrompt(std::string &new_prompt);
+    void setCurrentPrompt(const std::string &new_prompt);
     const std::string &getCurrentPrompt() const;
 };
 
