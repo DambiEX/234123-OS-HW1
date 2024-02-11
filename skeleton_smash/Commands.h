@@ -26,7 +26,7 @@ class BuiltInCommand : public Command {
 protected:
     SmallShell* smash;
 public:
-    BuiltInCommand(const char *cmd_line, SmallShell* smash) : Command(cmd_line), smash(smash) {};
+    BuiltInCommand(const char *cmd_line, SmallShell* smash = NULL) : Command(cmd_line), smash(smash) {};
 
     ~BuiltInCommand() override = default;
 };
@@ -91,7 +91,7 @@ public:
 
 class ShowPidCommand : public BuiltInCommand {
 public:
-    ShowPidCommand(const char *cmd_line, SmallShell* smash) : BuiltInCommand(cmd_line, smash) {}
+    ShowPidCommand(const char *cmd_line) : BuiltInCommand(cmd_line) {}
 
     virtual ~ShowPidCommand() {}
 
@@ -183,7 +183,7 @@ class SmallShell {
 private:
     // TODO: Add your data members
     pid_t smash_pid;
-    std::string current_prompt;
+    std::string prompt;
 
     SmallShell(); // ctor
 public:

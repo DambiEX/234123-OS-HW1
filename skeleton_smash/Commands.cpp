@@ -88,7 +88,7 @@ string _getTheRest(string input) {
     return _trim(input_s.substr(firstWord.length()));
 }
 
-SmallShell::SmallShell() : current_prompt(), smash_pid() {setCurrentPrompt(std::string());}
+SmallShell::SmallShell() : prompt(), smash_pid() {setCurrentPrompt(std::string());}
 
 SmallShell::~SmallShell() {
 // TODO: add your implementation
@@ -103,15 +103,15 @@ void ShowPidCommand::execute() {
 
 Command* SmallShell::CreateCommand(const char* cmd_line) {
 
-  string firstWord = _getTheRest(cmd_line);
-  string theRest = _getTheRest(cmd_line);
+  string firstWord = _getFirstWord(cmd_line);
+//  string theRest = _getTheRest(cmd_line);
 /*
   if (firstWord.compare("pwd") == 0) {
     return new GetCurrDirCommand(cmd_line);
   }
   else */
   if (firstWord.compare("showpid") == 0) {
-    return new ShowPidCommand(cmd_line, this);
+    return new ShowPidCommand(cmd_line);
   }
   else if (firstWord.compare("chprompt") == 0) {
         return new ChangePromptCommand(cmd_line, this);}
@@ -139,16 +139,17 @@ void SmallShell::executeCommand(const char *cmd_line) {
 }
 
 const string &SmallShell::getCurrentPrompt() const {
-    return current_prompt;
+    return prompt;
 }
 
 void SmallShell::setCurrentPrompt(const string &new_prompt) {
     if (new_prompt.empty())
-        current_prompt = DEFAULT_PROMPT;
+        prompt = DEFAULT_PROMPT;
     else
-        current_prompt = new_prompt + PROMPT_SUFFIX;
+        prompt = new_prompt + PROMPT_SUFFIX;
 }
 
 void ChangePromptCommand::execute() {
+    //sets the second word in the input as the prompt. the first word is the command "chprompt" itself.
     smash->setCurrentPrompt(_getFirstWord(_getTheRest(get_cmd_line())));
 }
