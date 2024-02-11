@@ -3,9 +3,12 @@
 
 #include <vector>
 
+#define DEFAULT_PROMPT std::string("smash> ")
+#define PROMPT_SUFFIX std::string("> ")
 #define COMMAND_ARGS_MAX_LENGTH (200)
 #define COMMAND_MAX_ARGS (20)
 
+class SmallShell;
 class Command {
     std::string cmd_line;
 public:
@@ -16,14 +19,16 @@ public:
     virtual void execute() = 0;
     //virtual void prepare();
     //virtual void cleanup();
-    // TODO: Add your extra methods if needed
+    std::string get_cmd_line(){return cmd_line;}
 };
 
 class BuiltInCommand : public Command {
+protected:
+    SmallShell* smash;
 public:
-    BuiltInCommand(const char *cmd_line) : Command(cmd_line) {}
+    BuiltInCommand(const char *cmd_line, SmallShell* smash = NULL) : Command(cmd_line), smash(smash) {};
 
-    virtual ~BuiltInCommand() {}
+    ~BuiltInCommand() override = default;
 };
 
 class ExternalCommand : public Command {
@@ -57,6 +62,15 @@ public:
     //void cleanup() override;
 };
 
+class ChangePromptCommand : public BuiltInCommand {
+public:
+    ChangePromptCommand(const char *cmd_line, SmallShell* smash) : BuiltInCommand(cmd_line, smash){};
+
+    virtual ~ChangePromptCommand() {}
+
+    void execute() override;
+};
+
 class ChangeDirCommand : public BuiltInCommand {
 // TODO: Add your data members public:
     ChangeDirCommand(const char *cmd_line, char **plastPwd);
@@ -83,17 +97,6 @@ public:
 
     void execute() override;
 };
-
-class ChangePrompt : public BuiltInCommand {
-    std::string cmd_s;
-public:
-    ChangePrompt(const char *cmd_line, const std::string cmd_s) : BuiltInCommand(cmd_line), cmd_s(cmd_s) {}
-
-    virtual ~ChangePrompt() {}
-
-    void execute() override;
-};
-
 
 class JobsList;
 
@@ -179,12 +182,14 @@ public:
 class SmallShell {
 private:
     // TODO: Add your data members
-    SmallShell();
-    std::string prompt ="smash> ";
+    pid_t smash_pid;
+    std::string prompt;
     std::string curr_path = "";
     std::string path_history = "";
+    SmallShell(); // ctor
 public:
     Command *CreateCommand(const char *cmd_line);
+
     SmallShell(SmallShell const &) = delete; // disable copy ctor
     void operator=(SmallShell const &) = delete; // disable = operator
     static SmallShell &getInstance() // make SmallShell singleton
@@ -195,14 +200,10 @@ public:
     }
 
     ~SmallShell();
-    const std::string getPrompt() const {
-        return prompt;
-    }
-    void setPrompt(const std::string& newPrompt) {
-        this->prompt = newPrompt;
-    }
+
     void executeCommand(const char *cmd_line);
-    // TODO: add extra methods as needed
+    void setCurrentPrompt(const std::string &new_prompt);
+    const std::string &getCurrentPrompt() const;
 };
 
 #endif //SMASH_COMMAND_H_

@@ -8,7 +8,7 @@
 #include "Commands.h"
 
 using namespace std;
-#define DEFAULT_PROMPT "smash> "
+
 #if 0
 #define FUNC_ENTRY()  \
   cout << __PRETTY_FUNCTION__ << " --> " << endl;
@@ -76,11 +76,19 @@ void _removeBackgroundSign(char* cmd_line) {
   cmd_line[str.find_last_not_of(WHITESPACE, idx) + 1] = 0;
 }
 
-// TODO: Add your implementation for classes in Commands.h 
-
-SmallShell::SmallShell() {
-// TODO: add your implementation
+string _getFirstWord(string input){
+    string input_s = _trim(string(input));
+    return input_s.substr(0, input_s.find_first_of(" \n"));
 }
+
+string _getTheRest(string input) {
+    //gets the entire string besides the first word, and returns the trimmed version of it
+    string input_s = _trim(string(input));
+    string firstWord = input_s.substr(0, input_s.find_first_of(" \n"));
+    return _trim(input_s.substr(firstWord.length()));
+}
+
+SmallShell::SmallShell() : prompt(), smash_pid() {setCurrentPrompt(std::string());}
 
 SmallShell::~SmallShell() {
 // TODO: add your implementation
@@ -90,25 +98,7 @@ SmallShell::~SmallShell() {
 * Creates and returns a pointer to Command class which matches the given command line (cmd_line)
 */
 void ShowPidCommand::execute() {
-    cout << SmallShell::getInstance().getPrompt()<<" pid is " << getpid() << endl;
-}
-
-void ChangePrompt::execute() {
-    size_t start = cmd_s.find_first_of(" \n");
-    if (start != std::string::npos) {
-        // This assumes there's a space after "chprompt"
-        size_t end = cmd_s.find_first_of(" \n", start + 1);
-        std::string newPrompt;
-        if (end != std::string::npos) {
-            newPrompt = cmd_s.substr(start + 1, end - start - 1);
-        } else {
-            newPrompt = cmd_s.substr(start + 1); // Take the rest if there's no second space
-        }
-        SmallShell::getInstance().setPrompt(newPrompt+"> ");
-
-    } else {
-        SmallShell::getInstance().setPrompt(DEFAULT_PROMPT);
-    }
+    cout << SmallShell::getInstance().getCurrentPrompt()<<" pid is " << getpid() << endl;
 }
 
 void GetCurrDirCommand::execute() {
@@ -120,23 +110,20 @@ void GetCurrDirCommand::execute() {
         perror("getcwd() error");
     }
 }
+Command* SmallShell::CreateCommand(const char* cmd_line) {
 
-Command * SmallShell::CreateCommand(const char* cmd_line) {
-
-  string cmd_s = _trim(string(cmd_line));
-  string firstWord = cmd_s.substr(0, cmd_s.find_first_of(" \n"));
+  string firstWord = _getFirstWord(cmd_line);
+//  string theRest = _getTheRest(cmd_line);
 
   if (firstWord.compare("pwd") == 0) {
     return new GetCurrDirCommand(cmd_line);
   }
-  else if (firstWord.compare("showpid") == 0) {
+  else
+  if (firstWord.compare("showpid") == 0) {
     return new ShowPidCommand(cmd_line);
   }
   else if (firstWord.compare("chprompt") == 0) {
-      return new ChangePrompt(cmd_line, cmd_s);
-
-
-  }
+        return new ChangePromptCommand(cmd_line, this);}
   /*
   else if ...
   .....
@@ -151,8 +138,27 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
 void SmallShell::executeCommand(const char *cmd_line) {
   // TODO: Add your implementation here
   // for example:
+
       Command *cmd = CreateCommand(cmd_line);
-      cmd->execute();
+      if (cmd){
+          cmd->execute();
+      }
 
   // Please note that you must fork smash process for some commands (e.g., external commands....)
+}
+
+const string &SmallShell::getCurrentPrompt() const {
+    return prompt;
+}
+
+void SmallShell::setCurrentPrompt(const string &new_prompt) {
+    if (new_prompt.empty())
+        prompt = DEFAULT_PROMPT;
+    else
+        prompt = new_prompt + PROMPT_SUFFIX;
+}
+
+void ChangePromptCommand::execute() {
+    //sets the second word in the input as the prompt. the first word is the command "chprompt" itself.
+    smash->setCurrentPrompt(_getFirstWord(_getTheRest(get_cmd_line())));
 }
