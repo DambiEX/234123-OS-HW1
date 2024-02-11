@@ -76,7 +76,17 @@ void _removeBackgroundSign(char* cmd_line) {
   cmd_line[str.find_last_not_of(WHITESPACE, idx) + 1] = 0;
 }
 
-// TODO: Add your implementation for classes in Commands.h 
+string _getFirstWord(string input){
+    string input_s = _trim(string(input));
+    return input_s.substr(0, input_s.find_first_of(" \n"));
+}
+
+string _getTheRest(string input) {
+    //gets the entire string besides the first word, and returns the trimmed version of it
+    string input_s = _trim(string(input));
+    string firstWord = input_s.substr(0, input_s.find_first_of(" \n"));
+    return _trim(input_s.substr(firstWord.length()));
+}
 
 SmallShell::SmallShell() : current_prompt(), smash_pid() {setCurrentPrompt(std::string());}
 
@@ -93,9 +103,8 @@ void ShowPidCommand::execute() {
 
 Command* SmallShell::CreateCommand(const char* cmd_line) {
 
-  string cmd_s = _trim(string(cmd_line));
-  string firstWord = cmd_s.substr(0, cmd_s.find_first_of(" \n"));
-  string theRest = _trim(cmd_s.substr(firstWord.length()));
+  string firstWord = _getTheRest(cmd_line);
+  string theRest = _getTheRest(cmd_line);
 /*
   if (firstWord.compare("pwd") == 0) {
     return new GetCurrDirCommand(cmd_line);
@@ -105,7 +114,7 @@ Command* SmallShell::CreateCommand(const char* cmd_line) {
     return new ShowPidCommand(cmd_line, this);
   }
   else if (firstWord.compare("chprompt") == 0) {
-        return new ChangePromptCommand(cmd_line, this, &theRest);}
+        return new ChangePromptCommand(cmd_line, this);}
   /*
   else if ...
   .....
@@ -141,5 +150,5 @@ void SmallShell::setCurrentPrompt(const string &new_prompt) {
 }
 
 void ChangePromptCommand::execute() {
-    smash->setCurrentPrompt(new_prompt);
+    smash->setCurrentPrompt(_getTheRest(get_cmd_line()));
 }

@@ -2,7 +2,6 @@
 #define SMASH_COMMAND_H_
 
 #include <vector>
-#include <string.h>
 
 #define DEFAULT_PROMPT std::string("smash> ")
 #define PROMPT_SUFFIX std::string("> ")
@@ -20,7 +19,7 @@ public:
     virtual void execute() = 0;
     //virtual void prepare();
     //virtual void cleanup();
-    // TODO: Add your extra methods if needed
+    std::string get_cmd_line(){return cmd_line;}
 };
 
 class BuiltInCommand : public Command {
@@ -64,10 +63,8 @@ public:
 };
 
 class ChangePromptCommand : public BuiltInCommand {
-private:
-    std::string new_prompt;
 public:
-    ChangePromptCommand(const char *cmd_line, SmallShell* smash, std::string *newPrompt) : BuiltInCommand(cmd_line, smash), new_prompt(*newPrompt){};
+    ChangePromptCommand(const char *cmd_line, SmallShell* smash) : BuiltInCommand(cmd_line, smash){};
 
     virtual ~ChangePromptCommand() {}
 
@@ -185,10 +182,10 @@ public:
 class SmallShell {
 private:
     // TODO: Add your data members
-    std::string current_prompt;
-    SmallShell(); // ctor
     pid_t smash_pid;
+    std::string current_prompt;
 
+    SmallShell(); // ctor
 public:
     Command *CreateCommand(const char *cmd_line);
 
@@ -207,5 +204,7 @@ public:
     void setCurrentPrompt(const std::string &new_prompt);
     const std::string &getCurrentPrompt() const;
 };
+
+
 
 #endif //SMASH_COMMAND_H_
