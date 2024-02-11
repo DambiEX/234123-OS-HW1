@@ -150,5 +150,5 @@ void SmallShell::setCurrentPrompt(const string &new_prompt) {
 }
 
 void ChangePromptCommand::execute() {
-    smash->setCurrentPrompt(_getTheRest(get_cmd_line()));
+    smash->setCurrentPrompt(_getFirstWord(_getTheRest(get_cmd_line())));
 }
