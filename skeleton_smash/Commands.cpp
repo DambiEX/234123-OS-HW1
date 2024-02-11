@@ -135,7 +135,7 @@ const string &SmallShell::getCurrentPrompt() const {
 
 void SmallShell::setCurrentPrompt(const string &new_prompt) {
     if (new_prompt.empty())
-        current_prompt = DEFAULT_PROMPT + PROMPT_SUFFIX;
+        current_prompt = DEFAULT_PROMPT;
     else
         current_prompt = new_prompt + PROMPT_SUFFIX;
 }

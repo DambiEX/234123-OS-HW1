@@ -4,7 +4,7 @@
 #include <vector>
 #include <string.h>
 
-#define DEFAULT_PROMPT std::string("smash")
+#define DEFAULT_PROMPT std::string("smash> ")
 #define PROMPT_SUFFIX std::string("> ")
 #define COMMAND_ARGS_MAX_LENGTH (200)
 #define COMMAND_MAX_ARGS (20)
