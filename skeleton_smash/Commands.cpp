@@ -95,11 +95,8 @@ Command* SmallShell::CreateCommand(const char* cmd_line) {
 
   string cmd_s = _trim(string(cmd_line));
   string firstWord = cmd_s.substr(0, cmd_s.find_first_of(" \n"));
-  string theRest = cmd_s;
-  theRest.erase(0, firstWord.length());
-//  string theRest = cmd_s.substr(cmd_s.find_first_of(firstWord), firstWord.length());
-    //  string theRest = cmd_s.substr(cmd_s.find_first_of(" \n")-1);
-
+  string theRest = cmd_s.substr(firstWord.length());
+//  theRest.erase(0, firstWord.length());
 /*
   if (firstWord.compare("pwd") == 0) {
     return new GetCurrDirCommand(cmd_line);
