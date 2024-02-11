@@ -8,7 +8,7 @@
 #include "Commands.h"
 
 using namespace std;
-
+#define DEFAULT_PROMPT "smash> "
 #if 0
 #define FUNC_ENTRY()  \
   cout << __PRETTY_FUNCTION__ << " --> " << endl;
@@ -18,7 +18,6 @@ using namespace std;
 #else
 #define FUNC_ENTRY()
 #define FUNC_EXIT()
-
 #endif
 
 const std::string WHITESPACE = " \n\r\t\f\v";
@@ -91,19 +90,52 @@ SmallShell::~SmallShell() {
 * Creates and returns a pointer to Command class which matches the given command line (cmd_line)
 */
 void ShowPidCommand::execute() {
-    cout << "smash pid is " << getpid() << endl;
+    cout << SmallShell::getInstance().getPrompt()<<" pid is " << getpid() << endl;
+}
+
+void ChangePrompt::execute() {
+    size_t start = cmd_s.find_first_of(" \n");
+    if (start != std::string::npos) {
+        // This assumes there's a space after "chprompt"
+        size_t end = cmd_s.find_first_of(" \n", start + 1);
+        std::string newPrompt;
+        if (end != std::string::npos) {
+            newPrompt = cmd_s.substr(start + 1, end - start - 1);
+        } else {
+            newPrompt = cmd_s.substr(start + 1); // Take the rest if there's no second space
+        }
+        SmallShell::getInstance().setPrompt(newPrompt+"> ");
+
+    } else {
+        SmallShell::getInstance().setPrompt(DEFAULT_PROMPT);
+    }
+}
+
+void GetCurrDirCommand::execute() {
+    char* cwd = getcwd(NULL, 0); // Dynamically allocate buffer
+    if (cwd != nullptr) {
+        std::cout << cwd << std::endl; // Print the current working directory
+        free(cwd); // Free the allocated buffer
+    } else {
+        perror("getcwd() error");
+    }
 }
 
 Command * SmallShell::CreateCommand(const char* cmd_line) {
 
   string cmd_s = _trim(string(cmd_line));
   string firstWord = cmd_s.substr(0, cmd_s.find_first_of(" \n"));
-/*
+
   if (firstWord.compare("pwd") == 0) {
     return new GetCurrDirCommand(cmd_line);
   }
-  else */if (firstWord.compare("showpid") == 0) {
+  else if (firstWord.compare("showpid") == 0) {
     return new ShowPidCommand(cmd_line);
+  }
+  else if (firstWord.compare("chprompt") == 0) {
+      return new ChangePrompt(cmd_line, cmd_s);
+
+
   }
   /*
   else if ...

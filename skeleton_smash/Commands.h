@@ -68,7 +68,7 @@ class ChangeDirCommand : public BuiltInCommand {
 
 class GetCurrDirCommand : public BuiltInCommand {
 public:
-    GetCurrDirCommand(const char *cmd_line);
+    GetCurrDirCommand(const char *cmd_line) : BuiltInCommand(cmd_line) {}
 
     virtual ~GetCurrDirCommand() {}
 
@@ -83,6 +83,17 @@ public:
 
     void execute() override;
 };
+
+class ChangePrompt : public BuiltInCommand {
+    std::string cmd_s;
+public:
+    ChangePrompt(const char *cmd_line, const std::string cmd_s) : BuiltInCommand(cmd_line), cmd_s(cmd_s) {}
+
+    virtual ~ChangePrompt() {}
+
+    void execute() override;
+};
+
 
 class JobsList;
 
@@ -169,10 +180,11 @@ class SmallShell {
 private:
     // TODO: Add your data members
     SmallShell();
-    pid_t smash_pid;
+    std::string prompt ="smash> ";
+    std::string curr_path = "";
+    std::string path_history = "";
 public:
     Command *CreateCommand(const char *cmd_line);
-
     SmallShell(SmallShell const &) = delete; // disable copy ctor
     void operator=(SmallShell const &) = delete; // disable = operator
     static SmallShell &getInstance() // make SmallShell singleton
@@ -183,7 +195,12 @@ public:
     }
 
     ~SmallShell();
-
+    const std::string getPrompt() const {
+        return prompt;
+    }
+    void setPrompt(const std::string& newPrompt) {
+        this->prompt = newPrompt;
+    }
     void executeCommand(const char *cmd_line);
     // TODO: add extra methods as needed
 };
