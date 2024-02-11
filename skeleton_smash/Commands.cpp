@@ -95,13 +95,13 @@ Command* SmallShell::CreateCommand(const char* cmd_line) {
 
   string cmd_s = _trim(string(cmd_line));
   string firstWord = cmd_s.substr(0, cmd_s.find_first_of(" \n"));
-  string theRest = cmd_s.substr(firstWord.length());
-//  theRest.erase(0, firstWord.length());
+  string theRest = _trim(cmd_s.substr(firstWord.length()));
 /*
   if (firstWord.compare("pwd") == 0) {
     return new GetCurrDirCommand(cmd_line);
   }
-  else */if (firstWord.compare("showpid") == 0) {
+  else */
+  if (firstWord.compare("showpid") == 0) {
     return new ShowPidCommand(cmd_line, this);
   }
   else if (firstWord.compare("chprompt") == 0) {
