@@ -138,14 +138,11 @@ Command* SmallShell::CreateCommand(const char* cmd_line) {
 }
 
 void SmallShell::executeCommand(const char *cmd_line) {
-  // TODO: Add your implementation here
-  // for example:
-
       Command *cmd = CreateCommand(cmd_line);
+      //delete finished jobs()
       if (cmd){
           cmd->execute();
       }
-
   // Please note that you must fork smash process for some commands (e.g., external commands....)
 }
 
@@ -163,4 +160,21 @@ void SmallShell::setCurrentPrompt(const string &new_prompt) {
 void ChangePromptCommand::execute() {
     //sets the second word in the input as the prompt. the first word is the command "chprompt" itself.
     smash->setCurrentPrompt(_getFirstWord(_getTheRest(get_cmd_line())));
+}
+
+int JobsList::JobEntry::get_id() const {
+    return id;
+}
+
+int JobsList::JobEntry::operator==(const JobEntry & other) const {
+    return id == other.get_id();
+}
+
+void JobsList::addJob(Command *cmd, bool isStopped) {
+    int new_id = get_new_id();
+    jobs.push_back(JobEntry(new_id, cmd));
+}
+
+int JobsList::get_new_id() {
+    return 0;
 }

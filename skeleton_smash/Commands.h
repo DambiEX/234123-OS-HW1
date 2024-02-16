@@ -114,9 +114,20 @@ class QuitCommand : public BuiltInCommand {
 class JobsList {
 public:
     class JobEntry {
-        // TODO: Add your data members
+    private:
+        Command* cmd;
+        int id;
+    public:
+        explicit JobEntry(int id, Command *cmd) : id(id), cmd(cmd) {}
+//        JobEntry(JobEntry const &) = delete; //disable copy ctor
+
+        int get_id() const;
+        int operator==(JobEntry const &) const;
     };
-    // TODO: Add your data members
+
+    std::vector<JobEntry> jobs; //the jobs list itself. TODO: jobs vector or pointers vector?
+
+    int get_new_id();
 public:
     JobsList();
 
