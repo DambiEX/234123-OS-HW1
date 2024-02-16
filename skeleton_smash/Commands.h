@@ -6,12 +6,17 @@
 #define DEFAULT_PROMPT std::string("smash> ")
 #define PROMPT_SUFFIX std::string("> ")
 #define PID_IS std::string(" pid is ")
+#define MAX_JOBS 110
 #define COMMAND_ARGS_MAX_LENGTH (200)
 #define COMMAND_MAX_ARGS (20)
 
 class SmallShell;
 class Command {
+private:
     std::string cmd_line;
+protected:
+    std::string get_cmd_line(){return cmd_line;}
+
 public:
     Command(const char *cmd_line) : cmd_line(cmd_line) {}
 
@@ -20,7 +25,9 @@ public:
     virtual void execute() = 0;
     //virtual void prepare();
     //virtual void cleanup();
-    std::string get_cmd_line(){return cmd_line;}
+
+    virtual bool is_external() const {return false;}
+    virtual std::string get_name() const;
 };
 
 class BuiltInCommand : public Command {
@@ -34,11 +41,12 @@ public:
 
 class ExternalCommand : public Command {
 public:
-    ExternalCommand(const char *cmd_line);
+    ExternalCommand(const char *cmd_line) : Command(cmd_line) {};
 
-    virtual ~ExternalCommand() {}
+    virtual ~ExternalCommand() override = default;
 
     void execute() override;
+    bool is_external() const override {return true;}
 };
 
 class PipeCommand : public Command {
@@ -115,23 +123,24 @@ class JobsList {
 public:
     class JobEntry {
     private:
-        Command* cmd;
         int id;
+        Command* cmd;
     public:
         explicit JobEntry(int id, Command *cmd) : id(id), cmd(cmd) {}
 //        JobEntry(JobEntry const &) = delete; //disable copy ctor
 
         int get_id() const;
+        std::string get_command
         int operator==(JobEntry const &) const;
     };
 
-    std::vector<JobEntry> jobs; //the jobs list itself. TODO: jobs vector or pointers vector?
+    std::vector<JobEntry*> jobs; //the jobs list itself. TODO: jobs vector or pointers vector?
 
     int get_new_id();
 public:
     JobsList();
 
-    ~JobsList();
+    ~JobsList() = default; //TODO: memory management?
 
     void addJob(Command *cmd, bool isStopped = false);
 
@@ -193,10 +202,10 @@ public:
 
 class SmallShell {
 private:
-    // TODO: Add your data members
     pid_t smash_pid;
     std::string prompt;
     std::string curr_path, path_history;
+    JobsList jobsList;
     SmallShell(); // ctor
 public:
     Command *CreateCommand(const char *cmd_line);

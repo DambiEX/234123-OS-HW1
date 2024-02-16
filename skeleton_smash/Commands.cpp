@@ -20,6 +20,8 @@ using namespace std;
 #define FUNC_EXIT()
 #endif
 
+//----------------------------------------HELPER FUNCTIONS-----------------------//
+
 const std::string WHITESPACE = " \n\r\t\f\v";
 string _ltrim(const std::string& s)
 {
@@ -88,12 +90,102 @@ string _getTheRest(string input) {
     return _trim(input_s.substr(firstWord.length()));
 }
 
+
+//---------------------------------SMASH--------------------------------//
+
 SmallShell::SmallShell() :  smash_pid(), prompt(), curr_path(""), path_history("") {
     setCurrentPrompt(std::string());
 }
 
 SmallShell::~SmallShell() {
 // TODO: add your implementation
+}
+
+Command* SmallShell::CreateCommand(const char* cmd_line) {
+
+    string firstWord = _getFirstWord(cmd_line);
+//  string theRest = _getTheRest(cmd_line);
+
+    if (firstWord.compare("pwd") == 0) {
+        return new GetCurrDirCommand(cmd_line);
+    }
+    else
+    if (firstWord.compare("showpid") == 0) {
+        return new ShowPidCommand(cmd_line);
+    }
+    else if (firstWord.compare("chprompt") == 0) {
+        return new ChangePromptCommand(cmd_line, this);}
+        /*
+        else if ...
+        .....*/
+    else {
+        return new ExternalCommand(cmd_line);
+    }
+
+    return nullptr;
+}
+
+void SmallShell::executeCommand(const char *cmd_line) {
+    Command *cmd = CreateCommand(cmd_line);
+    if (!cmd){throw;}
+    if (cmd->is_external())
+    {
+        jobsList.addJob(cmd);
+        //TODO: fork. run in background if "&" at end of command
+        //status = fork()
+        //setpgrp() //see HW instructions on this command
+    }
+      //delete finished jobs()
+
+      cmd->execute();
+
+  // Please note that you must fork smash process for some commands (e.g., external commands....)
+}
+
+const string &SmallShell::getCurrentPrompt() const {
+    return prompt;
+}
+
+void SmallShell::setCurrentPrompt(const string &new_prompt) {
+    if (new_prompt.empty())
+        prompt = DEFAULT_PROMPT;
+    else
+        prompt = new_prompt + PROMPT_SUFFIX;
+}
+
+
+//-----------------------------------------JOBS-------------------------------//
+
+int JobsList::JobEntry::get_id() const {
+    return id;
+}
+
+int JobsList::JobEntry::operator==(const JobEntry & other) const {
+    return id == other.get_id();
+}
+
+JobsList::JobsList() : jobs(MAX_JOBS) {}
+
+void JobsList::addJob(Command *cmd, bool isStopped) {
+    if (!cmd){throw(std::exception());} //TODO: exception syntax
+    int new_id = get_new_id();
+    jobs.push_back(new JobEntry(new_id, cmd)); //TODO: need additional memory management?
+}
+
+int JobsList::get_new_id() {
+    return 0;
+}
+
+void JobsList::printJobsList(){
+    for (unsigned int i=0; i<jobs.size(); i++){
+        std::cout << i <<jobs[i].<< endl;
+    }
+}
+
+//---------------------------------COMMANDS---------------------------------//
+
+std::string Command::get_name() const {
+    return _getFirstWord(cmd_line);
 }
 
 /**
@@ -112,69 +204,12 @@ void GetCurrDirCommand::execute() {
         perror("getcwd() error");
     }
 }
-Command* SmallShell::CreateCommand(const char* cmd_line) {
-
-  string firstWord = _getFirstWord(cmd_line);
-//  string theRest = _getTheRest(cmd_line);
-
-  if (firstWord.compare("pwd") == 0) {
-    return new GetCurrDirCommand(cmd_line);
-  }
-  else
-  if (firstWord.compare("showpid") == 0) {
-    return new ShowPidCommand(cmd_line);
-  }
-  else if (firstWord.compare("chprompt") == 0) {
-        return new ChangePromptCommand(cmd_line, this);}
-  /*
-  else if ...
-  .....
-
-  else {
-    return new ExternalCommand(cmd_line);
-  }
- */
-  return nullptr;
-}
-
-void SmallShell::executeCommand(const char *cmd_line) {
-      Command *cmd = CreateCommand(cmd_line);
-      //delete finished jobs()
-      if (cmd){
-          cmd->execute();
-      }
-  // Please note that you must fork smash process for some commands (e.g., external commands....)
-}
-
-const string &SmallShell::getCurrentPrompt() const {
-    return prompt;
-}
-
-void SmallShell::setCurrentPrompt(const string &new_prompt) {
-    if (new_prompt.empty())
-        prompt = DEFAULT_PROMPT;
-    else
-        prompt = new_prompt + PROMPT_SUFFIX;
-}
 
 void ChangePromptCommand::execute() {
     //sets the second word in the input as the prompt. the first word is the command "chprompt" itself.
     smash->setCurrentPrompt(_getFirstWord(_getTheRest(get_cmd_line())));
 }
 
-int JobsList::JobEntry::get_id() const {
-    return id;
-}
+void ExternalCommand::execute() {
 
-int JobsList::JobEntry::operator==(const JobEntry & other) const {
-    return id == other.get_id();
-}
-
-void JobsList::addJob(Command *cmd, bool isStopped) {
-    int new_id = get_new_id();
-    jobs.push_back(JobEntry(new_id, cmd));
-}
-
-int JobsList::get_new_id() {
-    return 0;
 }
