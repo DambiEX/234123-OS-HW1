@@ -88,7 +88,9 @@ string _getTheRest(string input) {
     return _trim(input_s.substr(firstWord.length()));
 }
 
-SmallShell::SmallShell() : prompt(), smash_pid() {setCurrentPrompt(std::string());}
+SmallShell::SmallShell() :  smash_pid(), prompt(), curr_path(""), path_history("") {
+    setCurrentPrompt(std::string());
+}
 
 SmallShell::~SmallShell() {
 // TODO: add your implementation
@@ -98,7 +100,7 @@ SmallShell::~SmallShell() {
 * Creates and returns a pointer to Command class which matches the given command line (cmd_line)
 */
 void ShowPidCommand::execute() {
-    cout << SmallShell::getInstance().getCurrentPrompt()<<" pid is " << getpid() << endl;
+    cout << SmallShell::getInstance().getCurrentPrompt() << PID_IS << getpid() << endl;
 }
 
 void GetCurrDirCommand::execute() {

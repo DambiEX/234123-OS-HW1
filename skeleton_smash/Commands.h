@@ -5,6 +5,7 @@
 
 #define DEFAULT_PROMPT std::string("smash> ")
 #define PROMPT_SUFFIX std::string("> ")
+#define PID_IS std::string(" pid is ")
 #define COMMAND_ARGS_MAX_LENGTH (200)
 #define COMMAND_MAX_ARGS (20)
 
@@ -184,8 +185,7 @@ private:
     // TODO: Add your data members
     pid_t smash_pid;
     std::string prompt;
-    std::string curr_path = "";
-    std::string path_history = "";
+    std::string curr_path, path_history;
     SmallShell(); // ctor
 public:
     Command *CreateCommand(const char *cmd_line);
