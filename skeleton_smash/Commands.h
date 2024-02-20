@@ -73,10 +73,10 @@ public:
 };
 
 class ChangeDirCommand : public BuiltInCommand {
-// TODO: Add your data members public:
-    ChangeDirCommand(const char *cmd_line, char **plastPwd);
+public:
+    ChangeDirCommand(const char *cmd_line) : BuiltInCommand(cmd_line){}
 
-    virtual ~ChangeDirCommand() {}
+    virtual ~ChangeDirCommand() = default;
 
     void execute() override;
 };
@@ -185,7 +185,7 @@ private:
     // TODO: Add your data members
     pid_t smash_pid;
     std::string prompt;
-    std::string curr_path, path_history;
+    std::string prev_path;
     SmallShell(); // ctor
 public:
     Command *CreateCommand(const char *cmd_line);
@@ -199,11 +199,13 @@ public:
         return instance;
     }
 
+
     ~SmallShell();
 
     void executeCommand(const char *cmd_line);
     void setCurrentPrompt(const std::string &new_prompt);
     const std::string &getCurrentPrompt() const;
+    std::string &getPrevPath();
 };
 
 #endif //SMASH_COMMAND_H_

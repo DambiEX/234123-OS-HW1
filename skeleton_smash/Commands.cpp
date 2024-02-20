@@ -88,13 +88,11 @@ string _getTheRest(string input) {
     return _trim(input_s.substr(firstWord.length()));
 }
 
-SmallShell::SmallShell() :  smash_pid(), prompt(), curr_path(""), path_history("") {
+SmallShell::SmallShell() :  smash_pid(), prompt(),prev_path() {
     setCurrentPrompt(std::string());
 }
 
-SmallShell::~SmallShell() {
-// TODO: add your implementation
-}
+SmallShell::~SmallShell() = default ;
 
 /**
 * Creates and returns a pointer to Command class which matches the given command line (cmd_line)
@@ -104,7 +102,7 @@ void ShowPidCommand::execute() {
 }
 
 void GetCurrDirCommand::execute() {
-    char* cwd = getcwd(NULL, 0); // Dynamically allocate buffer
+    char* cwd = getcwd(nullptr, 0); // Dynamically allocate buffer
     if (cwd != nullptr) {
         std::cout << cwd << std::endl; // Print the current working directory
         free(cwd); // Free the allocated buffer
@@ -112,6 +110,46 @@ void GetCurrDirCommand::execute() {
         perror("getcwd() error");
     }
 }
+
+void ChangeDirCommand::execute() {
+    char *prm[COMMAND_ARGS_MAX_LENGTH];
+    int number_of_words = _parseCommandLine(get_cmd_line().c_str(), prm);
+    if (number_of_words > 2) { // too many arguments
+        cerr << "smash error: cd: too many arguments" << endl;
+        return;
+    }
+    if (strcmp(prm[1], "-") == 0) { // if wants cd prev pwd
+        if (SmallShell::getInstance().getPrevPath().empty()) {// no prev path
+            cerr << "smash error: cd: OLDPWD not set" << endl;
+            return;
+        }
+        char buff[COMMAND_ARGS_MAX_LENGTH];
+        if (getcwd(buff, COMMAND_ARGS_MAX_LENGTH) == nullptr) {
+            cerr << "smash error: getcwd failed" << endl;
+            return;
+        }
+        if (chdir(SmallShell::getInstance().getPrevPath().c_str()) == -1) {
+            perror("smash error: chdir failed");
+            return;
+        }
+        SmallShell::getInstance().getPrevPath() = buff;
+    } else {
+        char buff[COMMAND_ARGS_MAX_LENGTH];
+        if (getcwd(buff, COMMAND_ARGS_MAX_LENGTH) == nullptr) {
+            cerr << "smash error: getcwd failed" << endl;
+            return;
+        }
+        if (chdir(prm[1]) == -1) {
+            perror("smash error: chdir failed");
+            return;
+        }
+        SmallShell::getInstance().getPrevPath() = buff;
+    }
+}
+
+
+
+
 Command* SmallShell::CreateCommand(const char* cmd_line) {
 
   string firstWord = _getFirstWord(cmd_line);
@@ -125,7 +163,12 @@ Command* SmallShell::CreateCommand(const char* cmd_line) {
     return new ShowPidCommand(cmd_line);
   }
   else if (firstWord.compare("chprompt") == 0) {
-        return new ChangePromptCommand(cmd_line, this);}
+        return new ChangePromptCommand(cmd_line, this);
+  }
+  else if (firstWord.compare("cd") == 0) {
+      return new ChangeDirCommand(cmd_line);
+  }
+
   /*
   else if ...
   .....
@@ -151,6 +194,10 @@ void SmallShell::executeCommand(const char *cmd_line) {
 
 const string &SmallShell::getCurrentPrompt() const {
     return prompt;
+}
+
+ string &SmallShell::getPrevPath() {
+    return prev_path;
 }
 
 void SmallShell::setCurrentPrompt(const string &new_prompt) {
