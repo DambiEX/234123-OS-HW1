@@ -126,6 +126,7 @@ Command* SmallShell::CreateCommand(const char* cmd_line) {
 }
 
 void SmallShell::executeCommand(const char *cmd_line) {
+    delete_finished_jobs();
     Command *cmd = CreateCommand(cmd_line);
     if (!cmd){throw;}
     if (cmd->is_external())
@@ -135,7 +136,6 @@ void SmallShell::executeCommand(const char *cmd_line) {
         //status = fork()
         //setpgrp() //see HW instructions on this command
     }
-      //delete finished jobs()
 
       cmd->execute();
 
@@ -153,6 +153,14 @@ void SmallShell::setCurrentPrompt(const string &new_prompt) {
         prompt = new_prompt + PROMPT_SUFFIX;
 }
 
+void SmallShell::printJobs() const{
+    jobsList.printJobsList();
+}
+
+void SmallShell::delete_finished_jobs() {
+    jobsList.delete_finished_jobs();
+}
+
 
 //-----------------------------------------JOBS-------------------------------//
 
@@ -164,29 +172,59 @@ int JobsList::JobEntry::operator==(const JobEntry & other) const {
     return id == other.get_id();
 }
 
-JobsList::JobsList() : jobs(MAX_JOBS) {}
+std::string JobsList::JobEntry::get_command_name() {
+    return cmd->get_name();
+}
+
+bool JobsList::JobEntry::is_deleted() {
+    return waitpid();
+}
+
+void JobsList::delete_finished_jobs() {
+    pid_t child;
+    do
+    {
+        child = waitpid()
+    } while ();
+
+//    for (int i = 0; i < MAX_JOBS-1; ++i) {
+//        if (jobs[i]->is_deleted()){
+//
+//        }
+//    }
+}
+
+JobsList::JobsList() : jobs(MAX_JOBS, nullptr) {}
 
 void JobsList::addJob(Command *cmd, bool isStopped) {
     if (!cmd){throw(std::exception());} //TODO: exception syntax
     int new_id = get_new_id();
-    jobs.push_back(new JobEntry(new_id, cmd)); //TODO: need additional memory management?
+    jobs[new_id] = (new JobEntry(new_id, cmd)); //TODO: need additional memory management?
 }
 
 int JobsList::get_new_id() {
-    return 0;
+    for (int i = 1; i < MAX_JOBS-1; ++i) {
+        if (jobs[i] == nullptr){
+            return i;
+        }
+    }
+    throw;
 }
 
-void JobsList::printJobsList(){
+void JobsList::printJobsList() const{
     for (unsigned int i=0; i<jobs.size(); i++){
-        std::cout << i <<jobs[i].<< endl;
+        std::cout << "[" << i << "] " << jobs[i]->get_command_name() << endl;
     }
 }
 
 //---------------------------------COMMANDS---------------------------------//
 
 std::string Command::get_name() const {
-    return _getFirstWord(cmd_line);
+    return cmd_line;
 }
+
+
+//--------------------------------BUILT-IN COMMANDS-----------------------//
 
 /**
 * Creates and returns a pointer to Command class which matches the given command line (cmd_line)
@@ -209,6 +247,12 @@ void ChangePromptCommand::execute() {
     //sets the second word in the input as the prompt. the first word is the command "chprompt" itself.
     smash->setCurrentPrompt(_getFirstWord(_getTheRest(get_cmd_line())));
 }
+
+void JobsCommand::execute() {
+    smash->printJobs();
+}
+
+//--------------------------------EXTERNAL COMMANDS------------------------//
 
 void ExternalCommand::execute() {
 

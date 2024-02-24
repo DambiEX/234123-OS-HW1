@@ -1,8 +1,6 @@
 #ifndef SMASH_COMMAND_H_
 #define SMASH_COMMAND_H_
 
-#include <vector>
-
 #define DEFAULT_PROMPT std::string("smash> ")
 #define PROMPT_SUFFIX std::string("> ")
 #define PID_IS std::string(" pid is ")
@@ -130,13 +128,15 @@ public:
 //        JobEntry(JobEntry const &) = delete; //disable copy ctor
 
         int get_id() const;
-        std::string get_command
+        bool is_deleted();
+        std::string get_command_name();
         int operator==(JobEntry const &) const;
     };
 
-    std::vector<JobEntry*> jobs; //the jobs list itself. TODO: jobs vector or pointers vector?
+    std::vector<JobEntry*> jobs; //the jobs list itself. TODO: jobs vector or pointers vector? TODO: switch to smart_ptr
 
     int get_new_id();
+    void delete_finished_jobs();
 public:
     JobsList();
 
@@ -144,7 +144,7 @@ public:
 
     void addJob(Command *cmd, bool isStopped = false);
 
-    void printJobsList();
+    void printJobsList() const;
 
     void killAllJobs();
 
@@ -161,9 +161,8 @@ public:
 };
 
 class JobsCommand : public BuiltInCommand {
-    // TODO: Add your data members
 public:
-    JobsCommand(const char *cmd_line, JobsList *jobs);
+    JobsCommand(const char *cmd_line, SmallShell* smash) : BuiltInCommand(cmd_line, smash){};
 
     virtual ~JobsCommand() {}
 
@@ -207,6 +206,7 @@ private:
     std::string curr_path, path_history;
     JobsList jobsList;
     SmallShell(); // ctor
+    void delete_finished_jobs();
 public:
     Command *CreateCommand(const char *cmd_line);
 
@@ -222,8 +222,10 @@ public:
     ~SmallShell();
 
     void executeCommand(const char *cmd_line);
+
     void setCurrentPrompt(const std::string &new_prompt);
     const std::string &getCurrentPrompt() const;
+    void printJobs() const;
 };
 
 #endif //SMASH_COMMAND_H_
