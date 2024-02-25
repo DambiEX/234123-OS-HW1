@@ -122,13 +122,15 @@ public:
     class JobEntry {
     private:
         int id;
+        pid_t pid;
         Command* cmd;
     public:
-        explicit JobEntry(int id, Command *cmd) : id(id), cmd(cmd) {}
+        explicit JobEntry(int id,pid_t pid, Command *cmd) : id(id),pid(pid), cmd(cmd) {}
 //        JobEntry(JobEntry const &) = delete; //disable copy ctor
 
         int get_id() const;
-        bool is_deleted();
+        int get_pid() const;
+        // bool is_deleted();
         std::string get_command_name();
         int operator==(JobEntry const &) const;
     };
@@ -136,6 +138,7 @@ public:
     std::vector<JobEntry*> jobs; //the jobs list itself. TODO: jobs vector or pointers vector? TODO: switch to smart_ptr
 
     int get_new_id();
+    void delete_job_by_pid(pid_t pid);
     void delete_finished_jobs();
 public:
     JobsList();
