@@ -1,6 +1,8 @@
 #ifndef SMASH_COMMAND_H_
 #define SMASH_COMMAND_H_
 
+#include <vector>
+
 #define DEFAULT_PROMPT std::string("smash> ")
 #define PROMPT_SUFFIX std::string("> ")
 #define PID_IS std::string(" pid is ")
@@ -125,7 +127,7 @@ public:
         pid_t pid;
         Command* cmd;
     public:
-        explicit JobEntry(int id,pid_t pid, Command *cmd) : id(id),pid(pid), cmd(cmd) {}
+        explicit JobEntry(int id, pid_t pid, Command *cmd) : id(id),pid(pid), cmd(cmd) {}
 //        JobEntry(JobEntry const &) = delete; //disable copy ctor
 
         int get_id() const;
@@ -145,7 +147,7 @@ public:
 
     ~JobsList() = default; //TODO: memory management?
 
-    void addJob(Command *cmd, bool isStopped = false);
+    void addJob(Command *cmd, pid_t pid);
 
     void printJobsList() const;
 
@@ -173,7 +175,6 @@ public:
 };
 
 class KillCommand : public BuiltInCommand {
-    // TODO: Add your data members
 public:
     KillCommand(const char *cmd_line, JobsList *jobs);
 

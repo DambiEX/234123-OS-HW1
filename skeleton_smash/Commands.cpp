@@ -1,7 +1,6 @@
 #include <unistd.h>
 #include <string.h>
 #include <iostream>
-#include <vector>
 #include <sstream>
 #include <sys/wait.h>
 #include <iomanip>
@@ -131,7 +130,8 @@ void SmallShell::executeCommand(const char *cmd_line) {
     if (!cmd){throw;}
     if (cmd->is_external())
     {
-        jobsList.addJob(cmd);
+        pid_t new_pid = 0; //TODO
+        jobsList.addJob(cmd, new_pid);
         //TODO: fork. run in background if "&" at end of command
         //status = fork()
         //setpgrp() //see HW instructions on this command
@@ -218,10 +218,10 @@ void JobsList::delete_finished_jobs() {
 
 JobsList::JobsList() : jobs(MAX_JOBS, nullptr) {}
 
-void JobsList::addJob(Command *cmd, bool isStopped) {
+void JobsList::addJob(Command *cmd, pid_t pid) {
     if (!cmd){throw(std::exception());} //TODO: exception syntax
     int new_id = get_new_id();
-    jobs[new_id] = (new JobEntry(new_id, cmd)); //TODO: need additional memory management?
+    jobs[new_id] = (new JobEntry(new_id, pid, cmd)); //TODO: need additional memory management?
 }
 
 int JobsList::get_new_id() {
