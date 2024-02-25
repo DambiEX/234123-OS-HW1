@@ -168,6 +168,10 @@ int JobsList::JobEntry::get_id() const {
     return id;
 }
 
+int JobsList::JobEntry::get_pid() const {
+    return pid;
+}
+
 int JobsList::JobEntry::operator==(const JobEntry & other) const {
     return id == other.get_id();
 }
@@ -176,16 +180,34 @@ std::string JobsList::JobEntry::get_command_name() {
     return cmd->get_name();
 }
 
-bool JobsList::JobEntry::is_deleted() {
-    return waitpid();
+// bool JobsList::JobEntry::is_deleted() {
+//     return waitpid();
+// }
+
+void JobsList::delete_job_by_pid(pid_t pid){
+    for (size_t i = 0; i < jobs.size(); i++)
+    {
+        if (jobs[i] && jobs[i]->get_pid() == pid)
+        {
+            jobs.erase(jobs.begin() + i); //deletes the i-th element from jobs
+            return;
+        }
+    }
 }
 
 void JobsList::delete_finished_jobs() {
-    pid_t child;
+    pid_t child_pid;
     do
     {
-        child = waitpid()
-    } while ();
+        int status;
+        child_pid = waitpid(-1, &status ,WNOHANG);
+        if (child_pid != 0)
+        {
+            delete_job_by_pid(child_pid);
+        }
+        else break;
+        
+    } while (true); //while we deleted a child, so maybe there are more left.
 
 //    for (int i = 0; i < MAX_JOBS-1; ++i) {
 //        if (jobs[i]->is_deleted()){
