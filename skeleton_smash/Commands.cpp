@@ -89,6 +89,24 @@ string _getTheRest(string input) {
     return _trim(input_s.substr(firstWord.length()));
 }
 
+bool _command_is_two_numbers(string input){
+    string first_word = _getFirstWord(input);
+    string second_word = _getFirstWord(_getTheRest(input));
+    if (first_word.empty() || second_word.empty())
+    {
+        return false;
+    }
+    try
+    {
+        if (stoi(first_word) == 0 || stoi(second_word) == 0){return false;}
+    }
+    catch(const std::invalid_argument&)
+    {
+        return false;
+    }
+    return true;    
+}
+
 
 //---------------------------------SMASH--------------------------------//
 
@@ -142,11 +160,22 @@ void SmallShell::executeCommand(const char *cmd_line) {
   // Please note that you must fork smash process for some commands (e.g., external commands....)
 }
 
+void SmallShell::smash_print(const string input)
+{
+    cout << getCurrentPrompt() << input << endl;
+}
+
+void SmallShell::smash_error(const string input)
+{
+    cerr << ERROR_PROMPT << input << endl;
+}
+
 const string &SmallShell::getCurrentPrompt() const {
     return prompt;
 }
 
-void SmallShell::setCurrentPrompt(const string &new_prompt) {
+void SmallShell::setCurrentPrompt(const string &new_prompt)
+{
     if (new_prompt.empty())
         prompt = DEFAULT_PROMPT;
     else
@@ -241,18 +270,28 @@ void JobsList::printJobsList() const{
 
 //---------------------------------COMMANDS---------------------------------//
 
-std::string Command::get_name() const {
+std::string Command::get_name() const
+{
     return cmd_line;
 }
 
-
 //--------------------------------BUILT-IN COMMANDS-----------------------//
+
+void BuiltInCommand::smash_print(const string input)
+{
+    smash->smash_print(input);
+}
+
+void BuiltInCommand::smash_error(const string input)
+{
+    smash->smash_error(input);
+}
 
 /**
 * Creates and returns a pointer to Command class which matches the given command line (cmd_line)
 */
 void ShowPidCommand::execute() {
-    cout << SmallShell::getInstance().getCurrentPrompt() << PID_IS << getpid() << endl;
+    smash_print(PID_IS + std::to_string(getpid()));
 }
 
 void GetCurrDirCommand::execute() {
@@ -274,8 +313,19 @@ void JobsCommand::execute() {
     smash->printJobs();
 }
 
+void KillCommand::execute()
+{
+    
+    if (not _command_is_two_numbers(get_cmd_line()))
+    {
+        smash_print("smash error: kill: invalid arguments");
+    }
+    pid_t target_pid = stoi(_getTheRest(get_cmd_line()));
+}
+
 //--------------------------------EXTERNAL COMMANDS------------------------//
 
 void ExternalCommand::execute() {
 
 }
+

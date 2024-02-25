@@ -3,6 +3,7 @@
 
 #include <vector>
 
+#define ERROR_PROMPT std::string("smash error: ")
 #define DEFAULT_PROMPT std::string("smash> ")
 #define PROMPT_SUFFIX std::string("> ")
 #define PID_IS std::string(" pid is ")
@@ -31,8 +32,11 @@ public:
 };
 
 class BuiltInCommand : public Command {
+    private:
 protected:
     SmallShell* smash;
+    void smash_print(const string input);
+    void smash_error(const string input);
 public:
     BuiltInCommand(const char *cmd_line, SmallShell* smash = NULL) : Command(cmd_line), smash(smash) {};
 
@@ -227,6 +231,8 @@ public:
 
     void executeCommand(const char *cmd_line);
 
+    void smash_print(const string input);
+    void smash_error(const string input);
     void setCurrentPrompt(const std::string &new_prompt);
     const std::string &getCurrentPrompt() const;
     void printJobs() const;
