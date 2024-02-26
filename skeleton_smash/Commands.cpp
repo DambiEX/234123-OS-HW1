@@ -89,9 +89,21 @@ string _getTheRest(string input) {
     return _trim(input_s.substr(firstWord.length()));
 }
 
+string _get_nth_word(const string input, int n){
+if (n==1)
+{
+    return _getFirstWord(input);
+}
+if (_getTheRest(input).empty())
+{
+    return NULL;
+}
+    return _get_nth_word(_getTheRest(input), n-1);
+}
+
 bool _command_is_two_numbers(string input){
-    string first_word = _getFirstWord(input);
-    string second_word = _getFirstWord(_getTheRest(input));
+    string first_word = _get_nth_word(input,1);
+    string second_word = _get_nth_word(input,2);
     if (first_word.empty() || second_word.empty())
     {
         return false;
@@ -186,6 +198,11 @@ void SmallShell::printJobs() const{
     jobsList.printJobsList();
 }
 
+void SmallShell::killall()
+{
+    
+}
+
 pid_t SmallShell::getPidById(int Id)
 {
     if (jobsList.getJobById(Id)){
@@ -277,6 +294,22 @@ void JobsList::printJobsList() const{
     }
 }
 
+void JobsList::killAllJobs()
+{
+    int jobs_num = 0;
+    string to_print = "";
+    for (size_t i = 0; i < jobs.size(); i++)
+    {
+        if (jobs[i])
+        {
+            jobs_num++;
+            JobEntry* job = jobs[i];
+            to_print += (job->get_pid()) + ": " + job->get_command_name() +"\n";
+            kill(job->get_pid(),SIGKILL);
+        }
+    }
+    SmallShell::getInstance().smash_print("sending SIGKILL signal to " + std::to_string(jobs_num) + "jobs \n");
+}
 
 //---------------------------------COMMANDS---------------------------------//
 
@@ -316,12 +349,25 @@ void GetCurrDirCommand::execute() {
 
 void ChangePromptCommand::execute() {
     //sets the second word in the input as the prompt. the first word is the command "chprompt" itself.
-    smash->setCurrentPrompt(_getFirstWord(_getTheRest(get_cmd_line())));
+    smash->setCurrentPrompt(_get_nth_word(get_cmd_line(),2));
 }
 
 void JobsCommand::execute() {
     smash->printJobs();
 }
+
+void QuitCommand::execute()
+{
+    bool kill = ((_get_nth_word(get_cmd_line(),2)) == "kill");
+    if (kill && _get_nth_word(get_cmd_line(),3).empty()) // the string is empty except first 2 words
+    {
+        smash.killall();
+    }
+    
+
+    exit(0); //return 0
+}
+
 
 void KillCommand::execute()
 {

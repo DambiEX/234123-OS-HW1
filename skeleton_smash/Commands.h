@@ -238,6 +238,7 @@ public:
     void setCurrentPrompt(const std::string &new_prompt);
     const std::string &getCurrentPrompt() const;
     void printJobs() const;
+    void killall();
     pid_t getPidById(int Id);
 };
 
