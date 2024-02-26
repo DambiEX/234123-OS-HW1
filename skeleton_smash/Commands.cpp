@@ -186,6 +186,14 @@ void SmallShell::printJobs() const{
     jobsList.printJobsList();
 }
 
+pid_t SmallShell::getPidById(int Id)
+{
+    if (jobsList.getJobById(Id)){
+        return jobsList.getJobById(Id)->get_pid();
+    }
+    else return 0;
+}
+
 void SmallShell::delete_finished_jobs() {
     jobsList.delete_finished_jobs();
 }
@@ -209,9 +217,10 @@ std::string JobsList::JobEntry::get_command_name() {
     return cmd->get_name();
 }
 
-// bool JobsList::JobEntry::is_deleted() {
-//     return waitpid();
-// }
+JobsList::JobEntry *JobsList::getJobById(int jobId)
+{
+    return jobs[jobId];
+}
 
 void JobsList::delete_job_by_pid(pid_t pid){
     for (size_t i = 0; i < jobs.size(); i++)
@@ -268,6 +277,7 @@ void JobsList::printJobsList() const{
     }
 }
 
+
 //---------------------------------COMMANDS---------------------------------//
 
 std::string Command::get_name() const
@@ -315,12 +325,28 @@ void JobsCommand::execute() {
 
 void KillCommand::execute()
 {
-    
-    if (not _command_is_two_numbers(get_cmd_line()))
+    const string cmd = _getTheRest(get_cmd_line()); //the commmand except the word kill.
+    if (not _command_is_two_numbers(cmd))
     {
-        smash_print("smash error: kill: invalid arguments");
+        smash_error("kill: invalid arguments");
+        return;
     }
-    pid_t target_pid = stoi(_getTheRest(get_cmd_line()));
+    int signum = stoi(_getFirstWord(cmd));
+    if (signum < MIN_SIGNUM || signum > MAX_SIGNUM) //TODO: is max signum correct?
+    {
+        smash_error("kill: invalid arguments");
+        return;
+    }
+    
+    int jobId = stoi(_getTheRest(cmd));
+    pid_t target_pid = smash->getPidById(jobId);
+    if (target_pid == 0)
+    {
+        smash_error(string("kill: job-id %d does not exist", jobId));
+        return;
+    }
+    kill(signum, target_pid);
+    cout << "signal number " << signum << " was sent to pid " << target_pid << endl;
 }
 
 //--------------------------------EXTERNAL COMMANDS------------------------//

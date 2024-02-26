@@ -2,6 +2,11 @@
 */.idea
 */.idea/*
 **/.idea/*
+.vscode/
 skeleton_smash/.idea/misc.xml
 cmake-build-*/
 skeleton_smash/CMakeLists.txt
+Commands.o
+signals.o
+smash
+smash.o

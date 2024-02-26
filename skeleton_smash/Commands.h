@@ -10,6 +10,8 @@
 #define MAX_JOBS 110
 #define COMMAND_ARGS_MAX_LENGTH (200)
 #define COMMAND_MAX_ARGS (20)
+#define MIN_SIGNUM 1
+#define MAX_SIGNUM 32
 
 class SmallShell;
 class Command {
@@ -236,6 +238,7 @@ public:
     void setCurrentPrompt(const std::string &new_prompt);
     const std::string &getCurrentPrompt() const;
     void printJobs() const;
+    pid_t getPidById(int Id);
 };
 
 #endif //SMASH_COMMAND_H_
