@@ -117,46 +117,101 @@ bool _command_is_two_numbers(string input){
     {
         return false;
     }
-    return true;    
+    return true;
 }
 
 
 //---------------------------------SMASH--------------------------------//
 
-SmallShell::SmallShell() :  smash_pid(), prompt(), curr_path(""), path_history("") {
+SmallShell::SmallShell() :  smash_pid(), prompt(),prev_path() {
     setCurrentPrompt(std::string());
 }
 
-SmallShell::~SmallShell() {
-// TODO: add your implementation
+SmallShell::~SmallShell() = default ;
+
+/**
+* Creates and returns a pointer to Command class which matches the given command line (cmd_line)
+*/
+void ShowPidCommand::execute() {
+    cout << SmallShell::getInstance().getCurrentPrompt() << PID_IS << getpid() << endl;
 }
+
+void GetCurrDirCommand::execute() {
+    char* cwd = getcwd(nullptr, 0); // Dynamically allocate buffer
+    if (cwd != nullptr) {
+        std::cout << cwd << std::endl; // Print the current working directory
+        free(cwd); // Free the allocated buffer
+    } else {
+        perror("getcwd() error");
+    }
+}
+
+void ChangeDirCommand::execute() {
+    char *prm[COMMAND_ARGS_MAX_LENGTH];
+    int number_of_words = _parseCommandLine(get_cmd_line().c_str(), prm);
+    if (number_of_words > 2) { // too many arguments
+        cerr << "smash error: cd: too many arguments" << endl;
+        return;
+    }
+    if (strcmp(prm[1], "-") == 0) { // if wants cd prev pwd
+        if (SmallShell::getInstance().getPrevPath().empty()) {// no prev path
+            cerr << "smash error: cd: OLDPWD not set" << endl;
+            return;
+        }
+        char buff[COMMAND_ARGS_MAX_LENGTH];
+        if (getcwd(buff, COMMAND_ARGS_MAX_LENGTH) == nullptr) {
+            cerr << "smash error: getcwd failed" << endl;
+            return;
+        }
+        if (chdir(SmallShell::getInstance().getPrevPath().c_str()) == -1) {
+            perror("smash error: chdir failed");
+            return;
+        }
+        SmallShell::getInstance().getPrevPath() = buff;
+    } else {
+        char buff[COMMAND_ARGS_MAX_LENGTH];
+        if (getcwd(buff, COMMAND_ARGS_MAX_LENGTH) == nullptr) {
+            cerr << "smash error: getcwd failed" << endl;
+            return;
+        }
+        if (chdir(prm[1]) == -1) {
+            perror("smash error: chdir failed");
+            return;
+        }
+        SmallShell::getInstance().getPrevPath() = buff;
+    }
+}
+
+
+
 
 Command* SmallShell::CreateCommand(const char* cmd_line) {
 
     string firstWord = _getFirstWord(cmd_line);
 //  string theRest = _getTheRest(cmd_line);
 
-    if (firstWord.compare("pwd") == 0) {
-        return new GetCurrDirCommand(cmd_line);
-    }
-    else
-    if (firstWord.compare("showpid") == 0) {
-        return new ShowPidCommand(cmd_line);
-    }
-    else if (firstWord.compare("chprompt") == 0) {
+  if (firstWord.compare("pwd") == 0) {
+    return new GetCurrDirCommand(cmd_line);
+  }
+  else
+  if (firstWord.compare("showpid") == 0) {
+    return new ShowPidCommand(cmd_line);
+  }
+  else if (firstWord.compare("chprompt") == 0) {
         return new ChangePromptCommand(cmd_line);
-        }
-    else if (firstWord.compare("jobs") == 0) {
-        return new JobsCommand(cmd_line);
-        }
-    else if (firstWord.compare("quit") == 0) {
-        return new QuitCommand(cmd_line);
-        }
-    else {
-        return new ExternalCommand(cmd_line);
-    }
-
-    return nullptr;
+  }
+  else if (firstWord.compare("cd") == 0) {
+      return new ChangeDirCommand(cmd_line);
+  }
+  else if (firstWord.compare("jobs") == 0) {
+      return new JobsCommand(cmd_line);
+  }
+  else if (firstWord.compare("quit") == 0) {
+      return new QuitCommand(cmd_line);
+  }
+  else {
+      return new ExternalCommand(cmd_line);
+  }
 }
 
 void SmallShell::executeCommand(const char *cmd_line) {
@@ -197,6 +252,10 @@ void SmallShell::setCurrentPrompt(const string &new_prompt)
         prompt = DEFAULT_PROMPT;
     else
         prompt = new_prompt;
+}
+
+string &SmallShell::getPrevPath() {
+    return prev_path;
 }
 
 void SmallShell::printJobs() const{
@@ -266,7 +325,7 @@ void JobsList::delete_finished_jobs() {
             delete_job_by_pid(child_pid);
         }
         else break;
-        
+
     } while (true); //while we deleted a child, so maybe there are more left.
 
 //    for (int i = 0; i < MAX_JOBS-1; ++i) {
@@ -387,7 +446,7 @@ void KillCommand::execute()
         smash_error("kill: invalid arguments");
         return;
     }
-    
+
     int jobId = stoi(_getTheRest(cmd));
     pid_t target_pid = SmallShell::getInstance().getPidById(jobId);
     if (target_pid == 0)

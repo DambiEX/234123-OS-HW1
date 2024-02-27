@@ -34,7 +34,6 @@ public:
 };
 
 class BuiltInCommand : public Command {
-    private:
 protected:
     void smash_print(const std::string input);
     void smash_error(const std::string input);
@@ -86,10 +85,10 @@ public:
 };
 
 class ChangeDirCommand : public BuiltInCommand {
-// TODO: Add your data members public:
-    ChangeDirCommand(const char *cmd_line, char **plastPwd);
+public:
+    ChangeDirCommand(const char *cmd_line) : BuiltInCommand(cmd_line){}
 
-    virtual ~ChangeDirCommand() {}
+    virtual ~ChangeDirCommand() = default;
 
     void execute() override;
 };
@@ -212,7 +211,7 @@ class SmallShell {
 private:
     pid_t smash_pid;
     std::string prompt;
-    std::string curr_path, path_history;
+    std::string prev_path;
     JobsList jobsList;
     SmallShell(); // ctor
     void delete_finished_jobs();
@@ -228,6 +227,7 @@ public:
         return instance;
     }
 
+
     ~SmallShell();
 
     void executeCommand(const char *cmd_line);
@@ -239,6 +239,7 @@ public:
     void printJobs() const;
     void killall();
     pid_t getPidById(int Id);
+    std::string &getPrevPath();
 };
 
 #endif //SMASH_COMMAND_H_
