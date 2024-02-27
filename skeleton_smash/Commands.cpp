@@ -129,22 +129,6 @@ SmallShell::SmallShell() :  smash_pid(), prompt(),prev_path() {
 
 SmallShell::~SmallShell() = default ;
 
-/**
-* Creates and returns a pointer to Command class which matches the given command line (cmd_line)
-*/
-void ShowPidCommand::execute() {
-    cout << SmallShell::getInstance().getCurrentPrompt() << PID_IS << getpid() << endl;
-}
-
-void GetCurrDirCommand::execute() {
-    char* cwd = getcwd(nullptr, 0); // Dynamically allocate buffer
-    if (cwd != nullptr) {
-        std::cout << cwd << std::endl; // Print the current working directory
-        free(cwd); // Free the allocated buffer
-    } else {
-        perror("getcwd() error");
-    }
-}
 
 void ChangeDirCommand::execute() {
     char *prm[COMMAND_ARGS_MAX_LENGTH];
