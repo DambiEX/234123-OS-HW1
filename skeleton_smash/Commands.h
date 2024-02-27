@@ -4,7 +4,7 @@
 #include <vector>
 
 #define ERROR_PROMPT std::string("smash error: ")
-#define DEFAULT_PROMPT std::string("smash> ")
+#define DEFAULT_PROMPT std::string("smash")
 #define PROMPT_SUFFIX std::string("> ")
 #define PID_IS std::string(" pid is ")
 #define MAX_JOBS 110
@@ -36,11 +36,10 @@ public:
 class BuiltInCommand : public Command {
     private:
 protected:
-    SmallShell* smash;
     void smash_print(const string input);
     void smash_error(const string input);
 public:
-    BuiltInCommand(const char *cmd_line, SmallShell* smash = NULL) : Command(cmd_line), smash(smash) {};
+    BuiltInCommand(const char *cmd_line) : Command(cmd_line){};
 
     ~BuiltInCommand() override = default;
 };
@@ -79,7 +78,7 @@ public:
 
 class ChangePromptCommand : public BuiltInCommand {
 public:
-    ChangePromptCommand(const char *cmd_line, SmallShell* smash) : BuiltInCommand(cmd_line, smash){};
+    ChangePromptCommand(const char *cmd_line) : BuiltInCommand(cmd_line){};
 
     virtual ~ChangePromptCommand() {}
 
@@ -173,7 +172,7 @@ public:
 
 class JobsCommand : public BuiltInCommand {
 public:
-    JobsCommand(const char *cmd_line, SmallShell* smash) : BuiltInCommand(cmd_line, smash){};
+    JobsCommand(const char *cmd_line) : BuiltInCommand(cmd_line){};
 
     virtual ~JobsCommand() {}
 

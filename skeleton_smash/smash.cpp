@@ -13,7 +13,7 @@ int main(int argc, char* argv[]) {
     //TODO: setup sig alarm handler
     SmallShell& smash = SmallShell::getInstance();
     while(true) {
-        std::cout << smash.getCurrentPrompt();
+        std::cout << smash.getCurrentPrompt() << PROMPT_SUFFIX;
         std::string cmd_line;
         std::getline(std::cin, cmd_line);
         smash.executeCommand(cmd_line.c_str());

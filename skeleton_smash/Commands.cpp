@@ -89,16 +89,17 @@ string _getTheRest(string input) {
     return _trim(input_s.substr(firstWord.length()));
 }
 
+string _removeFirstWords(string input, int n){
+    string output = input;
+    for (size_t i = 0; i < n and not output.empty(); i++)
+    {
+        output = _getTheRest(output);
+    }
+    return output;
+}
+
 string _get_nth_word(const string input, int n){
-if (n==1)
-{
-    return _getFirstWord(input);
-}
-if (_getTheRest(input).empty())
-{
-    return NULL;
-}
-    return _get_nth_word(_getTheRest(input), n-1);
+    return _getFirstWord(_removeFirstWords(input, n-1));
 }
 
 bool _command_is_two_numbers(string input){
@@ -143,7 +144,7 @@ Command* SmallShell::CreateCommand(const char* cmd_line) {
         return new ShowPidCommand(cmd_line);
     }
     else if (firstWord.compare("chprompt") == 0) {
-        return new ChangePromptCommand(cmd_line, this);}
+        return new ChangePromptCommand(cmd_line);}
         /*
         else if ...
         .....*/
@@ -174,7 +175,7 @@ void SmallShell::executeCommand(const char *cmd_line) {
 
 void SmallShell::smash_print(const string input)
 {
-    cout << getCurrentPrompt() << input << endl;
+    cout << getCurrentPrompt() << PROMPT_SUFFIX << input << endl; //TODO: endl or not to endl?
 }
 
 void SmallShell::smash_error(const string input)
@@ -191,7 +192,7 @@ void SmallShell::setCurrentPrompt(const string &new_prompt)
     if (new_prompt.empty())
         prompt = DEFAULT_PROMPT;
     else
-        prompt = new_prompt + PROMPT_SUFFIX;
+        prompt = new_prompt;
 }
 
 void SmallShell::printJobs() const{
@@ -200,7 +201,7 @@ void SmallShell::printJobs() const{
 
 void SmallShell::killall()
 {
-    
+    jobsList.killAllJobs();
 }
 
 pid_t SmallShell::getPidById(int Id)
@@ -308,7 +309,8 @@ void JobsList::killAllJobs()
             kill(job->get_pid(),SIGKILL);
         }
     }
-    SmallShell::getInstance().smash_print("sending SIGKILL signal to " + std::to_string(jobs_num) + "jobs \n");
+    cout << SmallShell::getInstance().getCurrentPrompt() << ": sending SIGKILL signal to " << jobs_num << "jobs \n" << endl;
+    cout << to_print;
 }
 
 //---------------------------------COMMANDS---------------------------------//
@@ -322,12 +324,12 @@ std::string Command::get_name() const
 
 void BuiltInCommand::smash_print(const string input)
 {
-    smash->smash_print(input);
+    SmallShell::getInstance().smash_print(input);
 }
 
 void BuiltInCommand::smash_error(const string input)
 {
-    smash->smash_error(input);
+    SmallShell::getInstance().smash_error(input);
 }
 
 /**
@@ -349,11 +351,11 @@ void GetCurrDirCommand::execute() {
 
 void ChangePromptCommand::execute() {
     //sets the second word in the input as the prompt. the first word is the command "chprompt" itself.
-    smash->setCurrentPrompt(_get_nth_word(get_cmd_line(),2));
+    SmallShell::getInstance().setCurrentPrompt(_get_nth_word(get_cmd_line(),2));
 }
 
 void JobsCommand::execute() {
-    smash->printJobs();
+    SmallShell::getInstance().printJobs();
 }
 
 void QuitCommand::execute()
@@ -361,10 +363,8 @@ void QuitCommand::execute()
     bool kill = ((_get_nth_word(get_cmd_line(),2)) == "kill");
     if (kill && _get_nth_word(get_cmd_line(),3).empty()) // the string is empty except first 2 words
     {
-        smash.killall();
+        SmallShell::getInstance().killall();
     }
-    
-
     exit(0); //return 0
 }
 
@@ -385,7 +385,7 @@ void KillCommand::execute()
     }
     
     int jobId = stoi(_getTheRest(cmd));
-    pid_t target_pid = smash->getPidById(jobId);
+    pid_t target_pid = SmallShell::getInstance().getPidById(jobId);
     if (target_pid == 0)
     {
         smash_error(string("kill: job-id %d does not exist", jobId));
