@@ -123,19 +123,130 @@ bool _command_is_two_numbers(string input){
 
 //---------------------------------SMASH--------------------------------//
 
-SmallShell::SmallShell() :  smash_pid(), prompt(), curr_path(""), path_history("") {
+string _removeFirstWords(string input, unsigned int n){
+    string output = input;
+    for (size_t i = 0; i < n and not output.empty(); i++)
+    {
+        output = _getTheRest(output);
+    }
+    return output;
+}
+
+string _get_nth_word(const string input, int n){
+    return _getFirstWord(_removeFirstWords(input, n-1));
+}
+
+bool _command_is_two_numbers(string input){
+    string first_word = _get_nth_word(input,1);
+    string second_word = _get_nth_word(input,2);
+    if (first_word.empty() || second_word.empty())
+    {
+        return false;
+    }
+    try
+    {
+        if (stoi(first_word) == 0 || stoi(second_word) == 0){return false;}
+    }
+    catch(const std::invalid_argument&)
+    {
+        return false;
+    }
+    return true;    
+}
+
+
+//---------------------------------SMASH--------------------------------//
+
+SmallShell::SmallShell() :  smash_pid(), prompt(),prev_path() {
     setCurrentPrompt(std::string());
 }
 
-SmallShell::~SmallShell() {
-// TODO: add your implementation
+SmallShell::~SmallShell() = default ;
+
+/**
+* Creates and returns a pointer to Command class which matches the given command line (cmd_line)
+*/
+void ShowPidCommand::execute() {
+    cout << SmallShell::getInstance().getCurrentPrompt() << PID_IS << getpid() << endl;
 }
+
+void GetCurrDirCommand::execute() {
+    char* cwd = getcwd(nullptr, 0); // Dynamically allocate buffer
+    if (cwd != nullptr) {
+        std::cout << cwd << std::endl; // Print the current working directory
+        free(cwd); // Free the allocated buffer
+    } else {
+        perror("getcwd() error");
+    }
+}
+
+void ChangeDirCommand::execute() {
+    char *prm[COMMAND_ARGS_MAX_LENGTH];
+    int number_of_words = _parseCommandLine(get_cmd_line().c_str(), prm);
+    if (number_of_words > 2) { // too many arguments
+        cerr << "smash error: cd: too many arguments" << endl;
+        return;
+    }
+    if (strcmp(prm[1], "-") == 0) { // if wants cd prev pwd
+        if (SmallShell::getInstance().getPrevPath().empty()) {// no prev path
+            cerr << "smash error: cd: OLDPWD not set" << endl;
+            return;
+        }
+        char buff[COMMAND_ARGS_MAX_LENGTH];
+        if (getcwd(buff, COMMAND_ARGS_MAX_LENGTH) == nullptr) {
+            cerr << "smash error: getcwd failed" << endl;
+            return;
+        }
+        if (chdir(SmallShell::getInstance().getPrevPath().c_str()) == -1) {
+            perror("smash error: chdir failed");
+            return;
+        }
+        SmallShell::getInstance().getPrevPath() = buff;
+    } else {
+        char buff[COMMAND_ARGS_MAX_LENGTH];
+        if (getcwd(buff, COMMAND_ARGS_MAX_LENGTH) == nullptr) {
+            cerr << "smash error: getcwd failed" << endl;
+            return;
+        }
+        if (chdir(prm[1]) == -1) {
+            perror("smash error: chdir failed");
+            return;
+        }
+        SmallShell::getInstance().getPrevPath() = buff;
+    }
+}
+
+
+
 
 Command* SmallShell::CreateCommand(const char* cmd_line) {
 
     string firstWord = _getFirstWord(cmd_line);
 //  string theRest = _getTheRest(cmd_line);
 
+  if (firstWord.compare("pwd") == 0) {
+    return new GetCurrDirCommand(cmd_line);
+  }
+  else
+  if (firstWord.compare("showpid") == 0) {
+    return new ShowPidCommand(cmd_line);
+  }
+  else if (firstWord.compare("chprompt") == 0) {
+        return new ChangePromptCommand(cmd_line);
+  }
+  else if (firstWord.compare("cd") == 0) {
+      return new ChangeDirCommand(cmd_line);
+  }
+
+  /*
+  else if ...
+  .....
+
+  else {
+    return new ExternalCommand(cmd_line);
+  }
+ */
+  return nullptr;
     if (firstWord.compare("pwd") == 0) {
         return new GetCurrDirCommand(cmd_line);
     }
@@ -190,6 +301,11 @@ void SmallShell::smash_error(const string input)
 const string &SmallShell::getCurrentPrompt() const {
     return prompt;
 }
+
+ string &SmallShell::getPrevPath() {
+    return prev_path;
+}
+
 
 void SmallShell::setCurrentPrompt(const string &new_prompt)
 {
