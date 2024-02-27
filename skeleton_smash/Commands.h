@@ -36,8 +36,8 @@ public:
 class BuiltInCommand : public Command {
     private:
 protected:
-    void smash_print(const string input);
-    void smash_error(const string input);
+    void smash_print(const std::string input);
+    void smash_error(const std::string input);
 public:
     BuiltInCommand(const char *cmd_line) : Command(cmd_line){};
 
@@ -115,8 +115,8 @@ public:
 class JobsList;
 
 class QuitCommand : public BuiltInCommand {
-// TODO: Add your data members public:
-    QuitCommand(const char *cmd_line, JobsList *jobs);
+public:
+    QuitCommand(const char *cmd_line) : BuiltInCommand(cmd_line) {}
 
     virtual ~QuitCommand() {}
 
@@ -232,8 +232,8 @@ public:
 
     void executeCommand(const char *cmd_line);
 
-    void smash_print(const string input);
-    void smash_error(const string input);
+    void smash_print(const std::string input);
+    void smash_error(const std::string input);
     void setCurrentPrompt(const std::string &new_prompt);
     const std::string &getCurrentPrompt() const;
     void printJobs() const;

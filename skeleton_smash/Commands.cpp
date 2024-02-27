@@ -89,7 +89,7 @@ string _getTheRest(string input) {
     return _trim(input_s.substr(firstWord.length()));
 }
 
-string _removeFirstWords(string input, int n){
+string _removeFirstWords(string input, unsigned int n){
     string output = input;
     for (size_t i = 0; i < n and not output.empty(); i++)
     {
@@ -144,10 +144,14 @@ Command* SmallShell::CreateCommand(const char* cmd_line) {
         return new ShowPidCommand(cmd_line);
     }
     else if (firstWord.compare("chprompt") == 0) {
-        return new ChangePromptCommand(cmd_line);}
-        /*
-        else if ...
-        .....*/
+        return new ChangePromptCommand(cmd_line);
+        }
+    else if (firstWord.compare("jobs") == 0) {
+        return new JobsCommand(cmd_line);
+        }
+    else if (firstWord.compare("quit") == 0) {
+        return new QuitCommand(cmd_line);
+        }
     else {
         return new ExternalCommand(cmd_line);
     }
@@ -257,7 +261,7 @@ void JobsList::delete_finished_jobs() {
     {
         int status;
         child_pid = waitpid(-1, &status ,WNOHANG);
-        if (child_pid != 0)
+        if (child_pid > 0)
         {
             delete_job_by_pid(child_pid);
         }
