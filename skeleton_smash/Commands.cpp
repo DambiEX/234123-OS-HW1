@@ -4,7 +4,9 @@
 #include <sstream>
 #include <sys/wait.h>
 #include <iomanip>
+#include <algorithm>
 #include "Commands.h"
+
 
 using namespace std;
 
@@ -130,41 +132,20 @@ SmallShell::SmallShell() :  smash_pid(), prompt(),prev_path() {
 SmallShell::~SmallShell() = default ;
 
 
-void ChangeDirCommand::execute() {
-    char *prm[COMMAND_ARGS_MAX_LENGTH];
-    int number_of_words = _parseCommandLine(get_cmd_line().c_str(), prm);
-    if (number_of_words > 2) { // too many arguments
-        cerr << "smash error: cd: too many arguments" << endl;
-        return;
-    }
-    if (strcmp(prm[1], "-") == 0) { // if wants cd prev pwd
-        if (SmallShell::getInstance().getPrevPath().empty()) {// no prev path
-            cerr << "smash error: cd: OLDPWD not set" << endl;
-            return;
-        }
-        char buff[COMMAND_ARGS_MAX_LENGTH];
-        if (getcwd(buff, COMMAND_ARGS_MAX_LENGTH) == nullptr) {
-            cerr << "smash error: getcwd failed" << endl;
-            return;
-        }
-        if (chdir(SmallShell::getInstance().getPrevPath().c_str()) == -1) {
-            perror("smash error: chdir failed");
-            return;
-        }
-        SmallShell::getInstance().getPrevPath() = buff;
-    } else {
-        char buff[COMMAND_ARGS_MAX_LENGTH];
-        if (getcwd(buff, COMMAND_ARGS_MAX_LENGTH) == nullptr) {
-            cerr << "smash error: getcwd failed" << endl;
-            return;
-        }
-        if (chdir(prm[1]) == -1) {
-            perror("smash error: chdir failed");
-            return;
-        }
-        SmallShell::getInstance().getPrevPath() = buff;
-    }
+int SmallShell::get_num_jobs() const
+{
+    
+    // Calculate the number of null elements (i.e., elements equal to nullptr)
+    int NullCount = std::count(jobsList.jobs.begin(), jobsList.jobs.end(), nullptr);
+
+    // Calculate the total number of elements in the vector
+    int totalElements = jobsList.jobs.size();
+
+    // Count the number of non-null elements 
+    int notNullCount = totalElements - NullCount;
+    return notNullCount;
 }
+
 
 
 
@@ -173,16 +154,15 @@ Command* SmallShell::CreateCommand(const char* cmd_line) {
 
     string firstWord = _getFirstWord(cmd_line);
 //  string theRest = _getTheRest(cmd_line);
-
-  if (firstWord.compare("pwd") == 0) {
-    return new GetCurrDirCommand(cmd_line);
+    if (firstWord.compare("chprompt") == 0) {
+        return new ChangePromptCommand(cmd_line);
   }
   else
   if (firstWord.compare("showpid") == 0) {
     return new ShowPidCommand(cmd_line);
   }
-  else if (firstWord.compare("chprompt") == 0) {
-        return new ChangePromptCommand(cmd_line);
+  else if (firstWord.compare("pwd") == 0) {
+    return new GetCurrDirCommand(cmd_line);
   }
   else if (firstWord.compare("cd") == 0) {
       return new ChangeDirCommand(cmd_line);
@@ -190,8 +170,14 @@ Command* SmallShell::CreateCommand(const char* cmd_line) {
   else if (firstWord.compare("jobs") == 0) {
       return new JobsCommand(cmd_line);
   }
+  else if (firstWord.compare("fg") == 0) {
+      return new ForegroundCommand(cmd_line);
+  }
   else if (firstWord.compare("quit") == 0) {
       return new QuitCommand(cmd_line);
+  }
+  else if (firstWord.compare("kill") == 0) {
+      return new KillCommand(cmd_line);
   }
   else {
       return new ExternalCommand(cmd_line);
@@ -249,6 +235,11 @@ void SmallShell::printJobs() const{
 void SmallShell::killall()
 {
     jobsList.killAllJobs();
+}
+
+JobsList::JobEntry *SmallShell::getJobById(int Id)
+{
+    return jobsList.getJobById(Id);
 }
 
 pid_t SmallShell::getPidById(int Id)
@@ -379,6 +370,11 @@ void BuiltInCommand::smash_error(const string input)
     SmallShell::getInstance().smash_error(input);
 }
 
+void ChangePromptCommand::execute() {
+    //sets the second word in the input as the prompt. the first word is the command "chprompt" itself.
+    SmallShell::getInstance().setCurrentPrompt(_get_nth_word(get_cmd_line(),2));
+}
+
 /**
 * Creates and returns a pointer to Command class which matches the given command line (cmd_line)
 */
@@ -396,13 +392,87 @@ void GetCurrDirCommand::execute() {
     }
 }
 
-void ChangePromptCommand::execute() {
-    //sets the second word in the input as the prompt. the first word is the command "chprompt" itself.
-    SmallShell::getInstance().setCurrentPrompt(_get_nth_word(get_cmd_line(),2));
+void ChangeDirCommand::execute() {
+    char *prm[COMMAND_ARGS_MAX_LENGTH];
+    int number_of_words = _parseCommandLine(get_cmd_line().c_str(), prm);
+    if (number_of_words > 2) { // too many arguments
+        cerr << "smash error: cd: too many arguments" << endl;
+        return;
+    }
+    if (strcmp(prm[1], "-") == 0) { // if wants cd prev pwd
+        if (SmallShell::getInstance().getPrevPath().empty()) {// no prev path
+            cerr << "smash error: cd: OLDPWD not set" << endl;
+            return;
+        }
+        char buff[COMMAND_ARGS_MAX_LENGTH];
+        if (getcwd(buff, COMMAND_ARGS_MAX_LENGTH) == nullptr) {
+            cerr << "smash error: getcwd failed" << endl;
+            return;
+        }
+        if (chdir(SmallShell::getInstance().getPrevPath().c_str()) == -1) {
+            perror("smash error: chdir failed");
+            return;
+        }
+        SmallShell::getInstance().getPrevPath() = buff;
+    } else {
+        char buff[COMMAND_ARGS_MAX_LENGTH];
+        if (getcwd(buff, COMMAND_ARGS_MAX_LENGTH) == nullptr) {
+            cerr << "smash error: getcwd failed" << endl;
+            return;
+        }
+        if (chdir(prm[1]) == -1) {
+            perror("smash error: chdir failed");
+            return;
+        }
+        SmallShell::getInstance().getPrevPath() = buff;
+    }
 }
 
 void JobsCommand::execute() {
     SmallShell::getInstance().printJobs();
+}
+
+void ForegroundCommand::execute()
+{
+    if (_get_nth_word(get_cmd_line(),2).empty()) //no second argument
+    {
+        if (SmallShell::getInstance().get_num_jobs() == 0)
+        {
+            smash_error("fg: jobs list is empty");
+        }
+        else
+        {
+            smash_error("fg: invalid arguments");
+        }
+        return;
+    }
+    if (not _get_nth_word(get_cmd_line(), 3).empty()) // string has more than 2 words
+    {
+        smash_error("fg: invalid arguments");
+        return;
+    }
+
+    //string is exactly 2 words long, and the first word is "fg"
+    int job_id;
+    try
+    {
+        job_id = stoi(_get_nth_word(get_cmd_line(),2));
+    }
+    catch(const std::invalid_argument&)
+    {
+        smash_error("fg: invalid arguments");
+        return;
+    }
+    JobsList::JobEntry* job = SmallShell::getInstance().getJobById(job_id);
+    if (job == nullptr)
+    {
+        smash_error("job-id " + std::to_string(job_id) + " does not exist");
+    }
+    else
+    {
+        cout << job->get_command_name() << " " << job->get_pid() << endl;
+        waitpid(job->get_pid(),nullptr,WUNTRACED);
+    }
 }
 
 void QuitCommand::execute()
@@ -414,7 +484,6 @@ void QuitCommand::execute()
     }
     exit(0); //return 0
 }
-
 
 void KillCommand::execute()
 {
@@ -435,7 +504,7 @@ void KillCommand::execute()
     pid_t target_pid = SmallShell::getInstance().getPidById(jobId);
     if (target_pid == 0)
     {
-        smash_error(string("kill: job-id %d does not exist", jobId));
+        smash_error("kill: job-id " + std::to_string(jobId) + " does not exist");
         return;
     }
     kill(signum, target_pid);

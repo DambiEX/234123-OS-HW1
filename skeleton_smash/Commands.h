@@ -180,7 +180,7 @@ public:
 
 class KillCommand : public BuiltInCommand {
 public:
-    KillCommand(const char *cmd_line, JobsList *jobs);
+    KillCommand(const char *cmd_line)  : BuiltInCommand(cmd_line){};
 
     virtual ~KillCommand() {}
 
@@ -188,9 +188,8 @@ public:
 };
 
 class ForegroundCommand : public BuiltInCommand {
-    // TODO: Add your data members
 public:
-    ForegroundCommand(const char *cmd_line, JobsList *jobs);
+    ForegroundCommand(const char *cmd_line)  : BuiltInCommand(cmd_line){};
 
     virtual ~ForegroundCommand() {}
 
@@ -236,8 +235,10 @@ public:
     void smash_error(const std::string input);
     void setCurrentPrompt(const std::string &new_prompt);
     const std::string &getCurrentPrompt() const;
+    int get_num_jobs() const;
     void printJobs() const;
     void killall();
+    JobsList::JobEntry* getJobById(int Id);
     pid_t getPidById(int Id);
     std::string &getPrevPath();
 };
