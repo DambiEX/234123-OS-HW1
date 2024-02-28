@@ -2,6 +2,7 @@
 #define SMASH_COMMAND_H_
 
 #include <vector>
+#include <memory>
 
 #define ERROR_PROMPT std::string("smash error: ")
 #define DEFAULT_PROMPT std::string("smash")
@@ -129,9 +130,9 @@ public:
     private:
         int id;
         pid_t pid;
-        Command* cmd;
+        std::shared_ptr<Command> cmd;
     public:
-        explicit JobEntry(int id, pid_t pid, Command *cmd) : id(id),pid(pid), cmd(cmd) {}
+        explicit JobEntry(int id, pid_t pid, std::shared_ptr<Command> cmd) : id(id),pid(pid), cmd(cmd) {}
 //        JobEntry(JobEntry const &) = delete; //disable copy ctor
 
         int get_id() const;
@@ -141,7 +142,7 @@ public:
         int operator==(JobEntry const &) const;
     };
 
-    std::vector<JobEntry*> jobs; //the jobs list itself. TODO: jobs vector or pointers vector? TODO: switch to smart_ptr
+    std::vector<std::shared_ptr<JobEntry>> jobs;
 
     int get_new_id();
     void delete_job_by_pid(pid_t pid);
@@ -151,7 +152,7 @@ public:
 
     ~JobsList() = default; //TODO: memory management?
 
-    void addJob(Command *cmd, pid_t pid);
+    void addJob(std::shared_ptr<Command> cmd, pid_t pid);
 
     void printJobsList() const;
 
@@ -159,11 +160,11 @@ public:
 
     void removeFinishedJobs();
 
-    JobEntry *getJobById(int jobId);
+    std::shared_ptr<JobEntry> getJobById(int jobId);
 
     void removeJobById(int jobId);
 
-    JobEntry *getLastJob(int *lastJobId);
+    std::shared_ptr<JobsList> getLastJob(int *lastJobId);
 
     JobEntry *getLastStoppedJob(int *jobId);
     // TODO: Add extra methods or modify exisitng ones as needed
@@ -215,7 +216,7 @@ private:
     SmallShell(); // ctor
     void delete_finished_jobs();
 public:
-    Command *CreateCommand(const char *cmd_line);
+    std::shared_ptr<Command> CreateCommand(const char *cmd_line);
 
     SmallShell(SmallShell const &) = delete; // disable copy ctor
     void operator=(SmallShell const &) = delete; // disable = operator
@@ -238,7 +239,7 @@ public:
     int get_num_jobs() const;
     void printJobs() const;
     void killall();
-    JobsList::JobEntry* getJobById(int Id);
+    std::shared_ptr<JobsList::JobEntry> getJobById(int Id);
     pid_t getPidById(int Id);
     std::string &getPrevPath();
 };

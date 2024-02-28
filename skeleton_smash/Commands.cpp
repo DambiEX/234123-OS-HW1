@@ -150,43 +150,42 @@ int SmallShell::get_num_jobs() const
 
 
 
-Command* SmallShell::CreateCommand(const char* cmd_line) {
+std::shared_ptr<Command> SmallShell::CreateCommand(const char* cmd_line) {
 
     string firstWord = _getFirstWord(cmd_line);
-//  string theRest = _getTheRest(cmd_line);
-    if (firstWord.compare("chprompt") == 0) {
-        return new ChangePromptCommand(cmd_line);
+  if (firstWord.compare("chprompt") == 0) {
+    return std::shared_ptr<Command>(new ChangePromptCommand(cmd_line));
   }
   else
   if (firstWord.compare("showpid") == 0) {
-    return new ShowPidCommand(cmd_line);
+    return std::shared_ptr<Command>(new ShowPidCommand(cmd_line));
   }
   else if (firstWord.compare("pwd") == 0) {
-    return new GetCurrDirCommand(cmd_line);
+    return std::shared_ptr<Command>(new GetCurrDirCommand(cmd_line));
   }
   else if (firstWord.compare("cd") == 0) {
-      return new ChangeDirCommand(cmd_line);
+      return std::shared_ptr<Command>(new ChangeDirCommand(cmd_line));
   }
   else if (firstWord.compare("jobs") == 0) {
-      return new JobsCommand(cmd_line);
+      return std::shared_ptr<Command>(new JobsCommand(cmd_line));
   }
   else if (firstWord.compare("fg") == 0) {
-      return new ForegroundCommand(cmd_line);
+      return std::shared_ptr<Command>(new ForegroundCommand(cmd_line));
   }
   else if (firstWord.compare("quit") == 0) {
-      return new QuitCommand(cmd_line);
+      return std::shared_ptr<Command>(new QuitCommand(cmd_line));
   }
   else if (firstWord.compare("kill") == 0) {
-      return new KillCommand(cmd_line);
+      return std::shared_ptr<Command>(new KillCommand(cmd_line));
   }
   else {
-      return new ExternalCommand(cmd_line);
+      return std::shared_ptr<Command>(new ExternalCommand(cmd_line));
   }
 }
 
 void SmallShell::executeCommand(const char *cmd_line) {
     delete_finished_jobs();
-    Command *cmd = CreateCommand(cmd_line);
+    std::shared_ptr<Command> cmd = CreateCommand(cmd_line);
     if (!cmd){throw;}
     if (cmd->is_external())
     {
@@ -237,7 +236,7 @@ void SmallShell::killall()
     jobsList.killAllJobs();
 }
 
-JobsList::JobEntry *SmallShell::getJobById(int Id)
+std::shared_ptr<JobsList::JobEntry> SmallShell::getJobById(int Id)
 {
     return jobsList.getJobById(Id);
 }
@@ -273,7 +272,7 @@ std::string JobsList::JobEntry::get_command_name() {
     return cmd->get_name();
 }
 
-JobsList::JobEntry *JobsList::getJobById(int jobId)
+std::shared_ptr<JobsList::JobEntry> JobsList::getJobById(int jobId)
 {
     return jobs[jobId];
 }
@@ -312,10 +311,10 @@ void JobsList::delete_finished_jobs() {
 
 JobsList::JobsList() : jobs(MAX_JOBS, nullptr) {}
 
-void JobsList::addJob(Command *cmd, pid_t pid) {
+void JobsList::addJob(std::shared_ptr<Command> cmd, pid_t pid) {
     if (!cmd){throw(std::exception());} //TODO: exception syntax
     int new_id = get_new_id();
-    jobs[new_id] = (new JobEntry(new_id, pid, cmd)); //TODO: need additional memory management?
+    jobs[new_id] = (std::shared_ptr<JobEntry>(new JobEntry(new_id, pid, cmd))); //TODO: need additional memory management?
 }
 
 int JobsList::get_new_id() {
@@ -342,7 +341,7 @@ void JobsList::killAllJobs()
         if (jobs[i])
         {
             jobs_num++;
-            JobEntry* job = jobs[i];
+            std::shared_ptr<JobEntry> job = jobs[i];
             to_print += (job->get_pid()) + ": " + job->get_command_name() +"\n";
             kill(job->get_pid(),SIGKILL);
         }
@@ -463,7 +462,7 @@ void ForegroundCommand::execute()
         smash_error("fg: invalid arguments");
         return;
     }
-    JobsList::JobEntry* job = SmallShell::getInstance().getJobById(job_id);
+    std::shared_ptr<JobsList::JobEntry> job = SmallShell::getInstance().getJobById(job_id);
     if (job == nullptr)
     {
         smash_error("job-id " + std::to_string(job_id) + " does not exist");
