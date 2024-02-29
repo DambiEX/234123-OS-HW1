@@ -8,6 +8,8 @@
 #include "Commands.h"
 
 using namespace std;
+#define SMASH_BASH_PATH "/bin/bash"
+#define SMASH_C_ARG "-c"
 
 #if 0
 #define FUNC_ENTRY()  \
@@ -88,7 +90,7 @@ string _getTheRest(string input) {
     return _trim(input_s.substr(firstWord.length()));
 }
 
-SmallShell::SmallShell() :  smash_pid(), prompt(),prev_path() {
+SmallShell::SmallShell() :  smash_pid(), prompt(),prev_path(), jobs(), current_job(nullptr) {
     setCurrentPrompt(std::string());
 }
 
@@ -169,15 +171,57 @@ Command* SmallShell::CreateCommand(const char* cmd_line) {
       return new ChangeDirCommand(cmd_line);
   }
 
-  /*
-  else if ...
-  .....
-
-  else {
+ else
     return new ExternalCommand(cmd_line);
-  }
- */
+
   return nullptr;
+}
+shared_ptr<JobsList::JobEntry> JobsList::getJobByPid(const int& jobPid) const
+{
+    if(jobPid <= 0){
+        return std::shared_ptr<JobsList::JobEntry>(nullptr);
+    }
+    for(const auto& job: this->jobs){
+        if(job->getPid() == jobPid){
+            return job;
+        }
+    }
+    return std::shared_ptr<JobsList::JobEntry>(nullptr);
+}
+void ExternalCommand::execute()
+{
+    SmallShell &smash = SmallShell::getInstance();
+    pid_t new_pid = fork();
+    if (new_pid < 0){
+        perror("smash error: fork failed");
+        return;
+    }
+    else if (new_pid > 0){ // father
+        if(get_cmd_line().compare("") != 0){
+            smash.jobs.addJob(this, new_pid, false);
+        }
+        if(!isBgCommand())
+        {
+            smash.current_job = smash.jobs.getJobByPid(new_pid);
+            waitpid(new_pid, NULL, WUNTRACED);
+            smash.current_job = nullptr;
+        }
+    }
+    else{ // son's code:
+        setpgrp();
+        char cmd_args[COMMAND_MAX_ARGS+1];
+        strcpy(cmd_args, this->get_cmd_line().c_str());
+        char bash_path[COMMAND_ARGS_MAX_LENGTH+1];
+        strcpy(bash_path, SMASH_BASH_PATH);
+        char c_arg[COMMAND_ARGS_MAX_LENGTH+1];
+        strcpy(c_arg, SMASH_C_ARG);
+        char *args[] = {bash_path, c_arg, cmd_args, NULL};
+        if (execv(SMASH_BASH_PATH, args) == -1)
+        {
+            cerr << "smash error: execvp failed" << endl;
+            return;
+        }
+    }
 }
 
 void SmallShell::executeCommand(const char *cmd_line) {

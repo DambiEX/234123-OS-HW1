@@ -12,8 +12,9 @@
 class SmallShell;
 class Command {
     std::string cmd_line;
+    bool bg_command;
 public:
-    Command(const char *cmd_line) : cmd_line(cmd_line) {}
+    Command(const char *cmd_line) : cmd_line(cmd_line),bg_command(false) {}
 
     virtual ~Command() = default;
 
@@ -21,6 +22,7 @@ public:
     //virtual void prepare();
     //virtual void cleanup();
     std::string get_cmd_line(){return cmd_line;}
+    bool isBgCommand() const{return this->bg_command;}
 };
 
 class BuiltInCommand : public Command {
@@ -34,12 +36,13 @@ public:
 
 class ExternalCommand : public Command {
 public:
-    ExternalCommand(const char *cmd_line);
+    ExternalCommand(const char *cmd_line) : Command(cmd_line) {}
 
     virtual ~ExternalCommand() {}
 
     void execute() override;
 };
+
 
 class PipeCommand : public Command {
     // TODO: Add your data members
@@ -122,7 +125,7 @@ public:
 
     ~JobsList();
 
-    void addJob(Command *cmd, bool isStopped = false);
+    void addJob(Command *cmd,const pid_t& pid, bool isStopped = false);
 
     void printJobsList();
 
@@ -131,7 +134,7 @@ public:
     void removeFinishedJobs();
 
     JobEntry *getJobById(int jobId);
-
+    std::shared_ptr<JobEntry> getJobByPid(const int& jobPid) const;
     void removeJobById(int jobId);
 
     JobEntry *getLastJob(int *lastJobId);
@@ -188,6 +191,8 @@ private:
     std::string prev_path;
     SmallShell(); // ctor
 public:
+    JobsList jobs;
+    std::shared_ptr<JobsList::JobEntry> current_job;
     Command *CreateCommand(const char *cmd_line);
 
     SmallShell(SmallShell const &) = delete; // disable copy ctor
