@@ -106,6 +106,10 @@ string _get_nth_word(const string input, int n){
     return _getFirstWord(_removeFirstWords(input, n-1));
 }
 
+string _getLastChar(const string input){
+    return _trim(input.substr(input.find_last_not_of(" "), input.find_last_not_of(" ")));
+}
+
 bool _command_is_two_numbers(string input){
     string first_word = _get_nth_word(input,1);
     string second_word = _get_nth_word(input,2);
@@ -187,10 +191,16 @@ std::shared_ptr<Command> SmallShell::CreateCommand(std::string cmd_line) {
 }
 
 void SmallShell::executeCommand(std::string cmd_line) {
+    cout << "10" << endl;
+    printJobs();
+    cout << "11" << endl;
+    printJobs();
     delete_finished_jobs();
     std::shared_ptr<Command> cmd = CreateCommand(cmd_line);
     if (!cmd){throw;}
     cmd->execute();
+    cout << "9" << endl;
+    printJobs();
 
   // Please note that you must fork smash process for some commands (e.g., external commands....)
 }
@@ -362,6 +372,13 @@ void JobsList::killAllJobs()
 
 //---------------------------------COMMANDS---------------------------------//
 
+bool Command::run_in_foreground()
+{
+    cout << "string: " << _getLastChar(get_cmd_line()) << endl;
+    cout << "bool = " << (_getLastChar(get_cmd_line()) != (string("&"))) << endl;
+    return (_getLastChar(get_cmd_line()) != (string("&")));
+}
+
 std::string Command::get_name() const
 {
     return cmd_line;
@@ -531,21 +548,32 @@ void ExternalCommand::execute()
         perror("smash error: fork failed");
         return;
     }
-    else if (new_pid > 0){ // father
+    else if (new_pid > 0){ // parent
+    cout << "1" << endl;
+        smash.printJobs();
+        cout << "2" << endl;
         if(get_cmd_line().compare("") != 0){
+            smash.printJobs();
+            cout << "3" << endl;
             smash.addJob(get_name(), new_pid);
-        }
-        if(true) //(!isBgCommand())
-        {
-            int status;
-            waitpid(new_pid, &status, WUNTRACED);
-            if (not WIFSTOPPED(status)) 
+            smash.printJobs();
+            cout << "4" << endl;
+            if (run_in_foreground())
             {
+                cout << "5" << endl;
+                smash.printJobs();
+                waitpid(new_pid, NULL, 0);
+                cout << "6" << endl;
+                smash.printJobs();
                 smash.deleteJob(new_pid);
+                cout << "7" << endl;
+                smash.printJobs();
             }
+            cout << "8" << endl;
+            smash.printJobs();
         }
     }
-    else{ // son's code:
+    else{ // child's code:
         setpgrp();
         char cmd_args[COMMAND_MAX_ARGS+1];
         strcpy(cmd_args, this->get_cmd_line().c_str());

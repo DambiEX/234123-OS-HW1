@@ -18,12 +18,11 @@ class SmallShell;
 class Command {
 private:
     std::string cmd_line;
-    bool bg_command;
 protected:
     std::string get_cmd_line(){return cmd_line;}
-
+    bool run_in_foreground();
 public:
-    Command(std::string cmd) : cmd_line(cmd + " "),bg_command(false) {}
+    Command(std::string cmd) : cmd_line(cmd + " ") {}
 
     virtual ~Command() = default;
 
@@ -32,7 +31,6 @@ public:
     //virtual void cleanup();
 
     virtual bool is_external() const {return false;}
-    bool isBgCommand() const{return this->bg_command;}
     virtual std::string get_name() const;
 };
 
