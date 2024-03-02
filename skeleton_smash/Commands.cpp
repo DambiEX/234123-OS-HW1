@@ -115,7 +115,8 @@ bool _command_is_two_numbers(string input){
     }
     try
     {
-        if (stoi(first_word) == 0 || stoi(second_word) == 0){return false;}
+        stoi(first_word);
+        stoi(second_word);
     }
     catch(const std::invalid_argument&)
     {
@@ -225,9 +226,9 @@ void SmallShell::addJob(std::string cmd, pid_t pid)
     jobsList.addJob(cmd, pid);
 }
 
-void SmallShell::killJob(int jobId)
+void SmallShell::deleteJob(pid_t pid)
 {
-    jobsList.delete_job_by_id(jobId);
+    jobsList.delete_job_by_pid(pid);
 }
 
 void SmallShell::printJobs() const{
@@ -298,17 +299,15 @@ void JobsList::delete_job_by_id(int jobId)
 
 void JobsList::delete_finished_jobs() {
     pid_t child_pid;
+    int status;
     do
     {
-        int status;
         child_pid = waitpid(-1, &status ,WNOHANG);
         if (child_pid > 0)
         {
             delete_job_by_pid(child_pid);
         }
-        else break;
-
-    } while (true); //while we deleted a child, so maybe there are more left.
+    } while (child_pid > 0); //while we deleted a child, so maybe there are more left.
 
 //    for (int i = 0; i < MAX_JOBS-1; ++i) {
 //        if (jobs[i]->is_deleted()){
@@ -503,7 +502,7 @@ void KillCommand::execute()
         smash_error("kill: invalid arguments");
         return;
     }
-    int signum = stoi(_getFirstWord(cmd));
+    int signum = -stoi(_getFirstWord(cmd));
     if (signum < MIN_SIGNUM || signum > MAX_SIGNUM) //TODO: is max signum correct?
     {
         smash_error("kill: invalid arguments");
@@ -517,8 +516,8 @@ void KillCommand::execute()
         smash_error("kill: job-id " + std::to_string(jobId) + " does not exist");
         return;
     }
-    kill(signum, target_pid);
-    // SmallShell::getInstance().killJob(jobId);
+    kill(target_pid, signum);
+    // SmallShell::getInstance().deleteJob(jobId);
     cout << "signal number " << signum << " was sent to pid " << target_pid << endl;
 }
 
@@ -534,14 +533,16 @@ void ExternalCommand::execute()
     }
     else if (new_pid > 0){ // father
         if(get_cmd_line().compare("") != 0){
-            smash.addJob(get_name(), new_pid /*,false*//*TODO: add back "false"???*/);
+            smash.addJob(get_name(), new_pid);
         }
-        if(!isBgCommand())
+        if(true) //(!isBgCommand())
         {
-            //TODO: smash.current_job is an important field?
-            // smash.current_job = smash.jobs.getJobByPid(new_pid);
-            waitpid(new_pid, NULL, WUNTRACED);
-            // smash.current_job = nullptr;
+            int status;
+            waitpid(new_pid, &status, WUNTRACED);
+            if (not WIFSTOPPED(status)) 
+            {
+                smash.deleteJob(new_pid);
+            }
         }
     }
     else{ // son's code:
@@ -556,7 +557,7 @@ void ExternalCommand::execute()
         if (execv(SMASH_BASH_PATH, args) == -1)
         {
             cerr << "smash error: execvp failed" << endl;
-            exit(1);
+            return;
         }
     }
 }

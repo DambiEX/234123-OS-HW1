@@ -11,7 +11,7 @@
 #define MAX_JOBS 110
 #define COMMAND_ARGS_MAX_LENGTH (200)
 #define COMMAND_MAX_ARGS (20)
-#define MIN_SIGNUM 1
+#define MIN_SIGNUM 0
 #define MAX_SIGNUM 32
 
 class SmallShell;
@@ -23,10 +23,7 @@ protected:
     std::string get_cmd_line(){return cmd_line;}
 
 public:
-    Command(std::string cmd) : cmd_line(cmd + " "),bg_command(false) 
-    {
-        std::cout << get_cmd_line() << std::endl;
-        }
+    Command(std::string cmd) : cmd_line(cmd + " "),bg_command(false) {}
 
     virtual ~Command() = default;
 
@@ -250,7 +247,7 @@ public:
     pid_t getPidById(int Id);
     std::string &getPrevPath();
     void addJob(std::string cmd, pid_t pid);
-    void killJob(int jobId);
+    void deleteJob(pid_t pid);
 };
 
 #endif //SMASH_COMMAND_H_
