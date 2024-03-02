@@ -23,7 +23,10 @@ protected:
     std::string get_cmd_line(){return cmd_line;}
 
 public:
-    Command(const char *cmd_line) : cmd_line(cmd_line),bg_command(false) {}
+    Command(std::string cmd) : cmd_line(cmd + " "),bg_command(false) 
+    {
+        std::cout << get_cmd_line() << std::endl;
+        }
 
     virtual ~Command() = default;
 
@@ -41,14 +44,14 @@ protected:
     void smash_print(const std::string input);
     void smash_error(const std::string input);
 public:
-    BuiltInCommand(const char *cmd_line) : Command(cmd_line){};
+    BuiltInCommand(std::string cmd_line) : Command(cmd_line){};
 
     ~BuiltInCommand() override = default;
 };
 
 class ExternalCommand : public Command {
 public:
-    ExternalCommand(const char *cmd_line) : Command(cmd_line) {};
+    ExternalCommand(std::string cmd_line) : Command(cmd_line) {};
 
     virtual ~ExternalCommand() override = default;
 
@@ -60,7 +63,7 @@ public:
 class PipeCommand : public Command {
     // TODO: Add your data members
 public:
-    PipeCommand(const char *cmd_line);
+    PipeCommand(std::string cmd_line);
 
     virtual ~PipeCommand() {}
 
@@ -70,7 +73,7 @@ public:
 class RedirectionCommand : public Command {
     // TODO: Add your data members
 public:
-    explicit RedirectionCommand(const char *cmd_line);
+    explicit RedirectionCommand(std::string cmd_line);
 
     virtual ~RedirectionCommand() {}
 
@@ -81,7 +84,7 @@ public:
 
 class ChangePromptCommand : public BuiltInCommand {
 public:
-    ChangePromptCommand(const char *cmd_line) : BuiltInCommand(cmd_line){};
+    ChangePromptCommand(std::string cmd_line) : BuiltInCommand(cmd_line){};
 
     virtual ~ChangePromptCommand() {}
 
@@ -90,7 +93,7 @@ public:
 
 class ChangeDirCommand : public BuiltInCommand {
 public:
-    ChangeDirCommand(const char *cmd_line) : BuiltInCommand(cmd_line){}
+    ChangeDirCommand(std::string cmd_line) : BuiltInCommand(cmd_line){}
 
     virtual ~ChangeDirCommand() = default;
 
@@ -99,7 +102,7 @@ public:
 
 class GetCurrDirCommand : public BuiltInCommand {
 public:
-    GetCurrDirCommand(const char *cmd_line) : BuiltInCommand(cmd_line) {}
+    GetCurrDirCommand(std::string cmd_line) : BuiltInCommand(cmd_line) {}
 
     virtual ~GetCurrDirCommand() {}
 
@@ -108,7 +111,7 @@ public:
 
 class ShowPidCommand : public BuiltInCommand {
 public:
-    ShowPidCommand(const char *cmd_line) : BuiltInCommand(cmd_line) {}
+    ShowPidCommand(std::string cmd_line) : BuiltInCommand(cmd_line) {}
 
     virtual ~ShowPidCommand() {}
 
@@ -119,7 +122,7 @@ class JobsList;
 
 class QuitCommand : public BuiltInCommand {
 public:
-    QuitCommand(const char *cmd_line) : BuiltInCommand(cmd_line) {}
+    QuitCommand(std::string cmd_line) : BuiltInCommand(cmd_line) {}
 
     virtual ~QuitCommand() {}
 
@@ -133,9 +136,9 @@ public:
     private:
         int id;
         pid_t pid;
-        std::shared_ptr<Command> cmd;
+        std::string cmd;
     public:
-        explicit JobEntry(int id, pid_t pid, std::shared_ptr<Command> cmd) : id(id),pid(pid), cmd(cmd) {}
+        explicit JobEntry(int id, pid_t pid, std::string cmd) : id(id),pid(pid), cmd(cmd) {}
 //        JobEntry(JobEntry const &) = delete; //disable copy ctor
 
         int get_id() const;
@@ -149,13 +152,14 @@ public:
 
     int get_new_id();
     void delete_job_by_pid(pid_t pid);
+    void delete_job_by_id(int jobId);
     void delete_finished_jobs();
 public:
     JobsList();
 
     ~JobsList() = default; //TODO: memory management?
 
-    void addJob(std::shared_ptr<Command> cmd,const pid_t& pid /*TODO: change to regular pid_t?*/);
+    void addJob(std::string cmd, pid_t pid);
 
     void printJobsList() const;
 
@@ -175,7 +179,7 @@ public:
 
 class JobsCommand : public BuiltInCommand {
 public:
-    JobsCommand(const char *cmd_line) : BuiltInCommand(cmd_line){};
+    JobsCommand(std::string cmd_line) : BuiltInCommand(cmd_line){};
 
     virtual ~JobsCommand() {}
 
@@ -184,7 +188,7 @@ public:
 
 class KillCommand : public BuiltInCommand {
 public:
-    KillCommand(const char *cmd_line)  : BuiltInCommand(cmd_line){};
+    KillCommand(std::string cmd_line)  : BuiltInCommand(cmd_line){};
 
     virtual ~KillCommand() {}
 
@@ -193,7 +197,7 @@ public:
 
 class ForegroundCommand : public BuiltInCommand {
 public:
-    ForegroundCommand(const char *cmd_line)  : BuiltInCommand(cmd_line){};
+    ForegroundCommand(std::string cmd_line)  : BuiltInCommand(cmd_line){};
 
     virtual ~ForegroundCommand() {}
 
@@ -202,7 +206,7 @@ public:
 
 class ChmodCommand : public BuiltInCommand {
 public:
-    ChmodCommand(const char *cmd_line);
+    ChmodCommand(std::string cmd_line);
 
     virtual ~ChmodCommand() {}
 
@@ -219,7 +223,7 @@ private:
     SmallShell(); // ctor
     void delete_finished_jobs();
 public:
-    std::shared_ptr<Command> CreateCommand(const char *cmd_line);
+    std::shared_ptr<Command> CreateCommand(std::string cmd_line);
 
     SmallShell(SmallShell const &) = delete; // disable copy ctor
     void operator=(SmallShell const &) = delete; // disable = operator
@@ -233,7 +237,7 @@ public:
 
     ~SmallShell();
 
-    void executeCommand(const char *cmd_line);
+    void executeCommand(std::string cmd_line);
 
     void smash_print(const std::string input);
     void smash_error(const std::string input);
@@ -245,6 +249,8 @@ public:
     std::shared_ptr<JobsList::JobEntry> getJobById(int Id);
     pid_t getPidById(int Id);
     std::string &getPrevPath();
+    void addJob(std::string cmd, pid_t pid);
+    void killJob(int jobId);
 };
 
 #endif //SMASH_COMMAND_H_

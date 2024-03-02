@@ -152,7 +152,7 @@ int SmallShell::get_num_jobs() const
 
 
 
-std::shared_ptr<Command> SmallShell::CreateCommand(const char* cmd_line) {
+std::shared_ptr<Command> SmallShell::CreateCommand(std::string cmd_line) {
 
     string firstWord = _getFirstWord(cmd_line);
   if (firstWord.compare("chprompt") == 0) {
@@ -185,20 +185,11 @@ std::shared_ptr<Command> SmallShell::CreateCommand(const char* cmd_line) {
   }
 }
 
-void SmallShell::executeCommand(const char *cmd_line) {
+void SmallShell::executeCommand(std::string cmd_line) {
     delete_finished_jobs();
     std::shared_ptr<Command> cmd = CreateCommand(cmd_line);
     if (!cmd){throw;}
-    if (cmd->is_external())
-    {
-        pid_t new_pid = 0; //TODO
-        jobsList.addJob(cmd, new_pid);
-        //TODO: fork. run in background if "&" at end of command
-        //status = fork()
-        //setpgrp() //see HW instructions on this command
-    }
-
-      cmd->execute();
+    cmd->execute();
 
   // Please note that you must fork smash process for some commands (e.g., external commands....)
 }
@@ -227,6 +218,16 @@ void SmallShell::setCurrentPrompt(const string &new_prompt)
 
 string &SmallShell::getPrevPath() {
     return prev_path;
+}
+
+void SmallShell::addJob(std::string cmd, pid_t pid)
+{
+    jobsList.addJob(cmd, pid);
+}
+
+void SmallShell::killJob(int jobId)
+{
+    jobsList.delete_job_by_id(jobId);
 }
 
 void SmallShell::printJobs() const{
@@ -271,7 +272,7 @@ int JobsList::JobEntry::operator==(const JobEntry & other) const {
 }
 
 std::string JobsList::JobEntry::get_command_name() {
-    return cmd->get_name();
+    return cmd;
 }
 
 std::shared_ptr<JobsList::JobEntry> JobsList::getJobById(int jobId)
@@ -288,6 +289,11 @@ void JobsList::delete_job_by_pid(pid_t pid){
             return;
         }
     }
+}
+
+void JobsList::delete_job_by_id(int jobId)
+{
+    jobs.erase(jobs.begin() + jobId);
 }
 
 void JobsList::delete_finished_jobs() {
@@ -313,10 +319,10 @@ void JobsList::delete_finished_jobs() {
 
 JobsList::JobsList() : jobs(MAX_JOBS, nullptr) {}
 
-void JobsList::addJob(std::shared_ptr<Command> cmd, pid_t pid) {
-    if (!cmd){throw(std::exception());} //TODO: exception syntax
+void JobsList::addJob(std::string cmd, pid_t pid) {
+    if (cmd.empty()){throw(std::exception());} //TODO: exception syntax
     int new_id = get_new_id();
-    jobs[new_id] = (std::shared_ptr<JobEntry>(new JobEntry(new_id, pid, cmd))); //TODO: need additional memory management?
+    jobs[new_id] = (std::shared_ptr<JobEntry>(new JobEntry(new_id, pid, cmd)));
 }
 
 int JobsList::get_new_id() {
@@ -330,7 +336,10 @@ int JobsList::get_new_id() {
 
 void JobsList::printJobsList() const{
     for (unsigned int i=0; i<jobs.size(); i++){
-        std::cout << "[" << i << "] " << jobs[i]->get_command_name() << endl;
+        if (jobs[i])
+        {
+            std::cout << "[" << jobs[i]->get_id() << "] " << jobs[i]->get_command_name() << endl;
+        }
     }
 }
 
@@ -509,15 +518,11 @@ void KillCommand::execute()
         return;
     }
     kill(signum, target_pid);
+    // SmallShell::getInstance().killJob(jobId);
     cout << "signal number " << signum << " was sent to pid " << target_pid << endl;
 }
 
 //--------------------------------EXTERNAL COMMANDS------------------------//
-
-void ExternalCommand::execute() {
-
-}
-
 
 void ExternalCommand::execute()
 {
@@ -529,13 +534,14 @@ void ExternalCommand::execute()
     }
     else if (new_pid > 0){ // father
         if(get_cmd_line().compare("") != 0){
-            smash.jobs.addJob(this, new_pid, false);
+            smash.addJob(get_name(), new_pid /*,false*//*TODO: add back "false"???*/);
         }
         if(!isBgCommand())
         {
-            smash.current_job = smash.jobs.getJobByPid(new_pid);
+            //TODO: smash.current_job is an important field?
+            // smash.current_job = smash.jobs.getJobByPid(new_pid);
             waitpid(new_pid, NULL, WUNTRACED);
-            smash.current_job = nullptr;
+            // smash.current_job = nullptr;
         }
     }
     else{ // son's code:
@@ -550,7 +556,7 @@ void ExternalCommand::execute()
         if (execv(SMASH_BASH_PATH, args) == -1)
         {
             cerr << "smash error: execvp failed" << endl;
-            return;
+            exit(1);
         }
     }
 }
