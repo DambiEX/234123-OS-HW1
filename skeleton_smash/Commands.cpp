@@ -191,16 +191,10 @@ std::shared_ptr<Command> SmallShell::CreateCommand(std::string cmd_line) {
 }
 
 void SmallShell::executeCommand(std::string cmd_line) {
-    cout << "10" << endl;
-    printJobs();
-    cout << "11" << endl;
-    printJobs();
     delete_finished_jobs();
     std::shared_ptr<Command> cmd = CreateCommand(cmd_line);
     if (!cmd){throw;}
     cmd->execute();
-    cout << "9" << endl;
-    printJobs();
 
   // Please note that you must fork smash process for some commands (e.g., external commands....)
 }
@@ -313,7 +307,7 @@ void JobsList::delete_finished_jobs() {
     do
     {
         child_pid = waitpid(-1, &status ,WNOHANG);
-        if (child_pid > 0)
+        if (child_pid > 0 && WIFEXITED(status))
         {
             delete_job_by_pid(child_pid);
         }
@@ -374,8 +368,8 @@ void JobsList::killAllJobs()
 
 bool Command::run_in_foreground()
 {
-    cout << "string: " << _getLastChar(get_cmd_line()) << endl;
-    cout << "bool = " << (_getLastChar(get_cmd_line()) != (string("&"))) << endl;
+    // cout << "string: " << _getLastChar(get_cmd_line()) << endl;
+    // cout << "bool = " << (_getLastChar(get_cmd_line()) != (string("&"))) << endl;
     return (_getLastChar(get_cmd_line()) != (string("&")));
 }
 
@@ -549,28 +543,14 @@ void ExternalCommand::execute()
         return;
     }
     else if (new_pid > 0){ // parent
-    cout << "1" << endl;
-        smash.printJobs();
-        cout << "2" << endl;
+
         if(get_cmd_line().compare("") != 0){
-            smash.printJobs();
-            cout << "3" << endl;
             smash.addJob(get_name(), new_pid);
-            smash.printJobs();
-            cout << "4" << endl;
             if (run_in_foreground())
             {
-                cout << "5" << endl;
-                smash.printJobs();
                 waitpid(new_pid, NULL, 0);
-                cout << "6" << endl;
-                smash.printJobs();
                 smash.deleteJob(new_pid);
-                cout << "7" << endl;
-                smash.printJobs();
             }
-            cout << "8" << endl;
-            smash.printJobs();
         }
     }
     else{ // child's code:
