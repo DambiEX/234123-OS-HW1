@@ -18,11 +18,12 @@ class SmallShell;
 class Command {
 private:
     std::string cmd_line;
+    bool bg_command;
 protected:
     std::string get_cmd_line(){return cmd_line;}
 
 public:
-    Command(const char *cmd_line) : cmd_line(cmd_line) {}
+    Command(const char *cmd_line) : cmd_line(cmd_line),bg_command(false) {}
 
     virtual ~Command() = default;
 
@@ -31,6 +32,7 @@ public:
     //virtual void cleanup();
 
     virtual bool is_external() const {return false;}
+    bool isBgCommand() const{return this->bg_command;}
     virtual std::string get_name() const;
 };
 
@@ -53,6 +55,7 @@ public:
     void execute() override;
     bool is_external() const override {return true;}
 };
+
 
 class PipeCommand : public Command {
     // TODO: Add your data members
@@ -152,7 +155,7 @@ public:
 
     ~JobsList() = default; //TODO: memory management?
 
-    void addJob(std::shared_ptr<Command> cmd, pid_t pid);
+    void addJob(std::shared_ptr<Command> cmd,const pid_t& pid /*TODO: change to regular pid_t?*/);
 
     void printJobsList() const;
 
@@ -161,7 +164,7 @@ public:
     void removeFinishedJobs();
 
     std::shared_ptr<JobEntry> getJobById(int jobId);
-
+    std::shared_ptr<JobEntry> getJobByPid(const int& jobPid) const;
     void removeJobById(int jobId);
 
     std::shared_ptr<JobsList> getLastJob(int *lastJobId);

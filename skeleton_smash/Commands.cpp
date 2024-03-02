@@ -9,6 +9,8 @@
 
 
 using namespace std;
+#define SMASH_BASH_PATH "/bin/bash"
+#define SMASH_C_ARG "-c"
 
 #if 0
 #define FUNC_ENTRY()  \
@@ -134,14 +136,14 @@ SmallShell::~SmallShell() = default ;
 
 int SmallShell::get_num_jobs() const
 {
-    
+
     // Calculate the number of null elements (i.e., elements equal to nullptr)
     int NullCount = std::count(jobsList.jobs.begin(), jobsList.jobs.end(), nullptr);
 
     // Calculate the total number of elements in the vector
     int totalElements = jobsList.jobs.size();
 
-    // Count the number of non-null elements 
+    // Count the number of non-null elements
     int notNullCount = totalElements - NullCount;
     return notNullCount;
 }
@@ -516,3 +518,39 @@ void ExternalCommand::execute() {
 
 }
 
+
+void ExternalCommand::execute()
+{
+    SmallShell &smash = SmallShell::getInstance();
+    pid_t new_pid = fork();
+    if (new_pid < 0){
+        perror("smash error: fork failed");
+        return;
+    }
+    else if (new_pid > 0){ // father
+        if(get_cmd_line().compare("") != 0){
+            smash.jobs.addJob(this, new_pid, false);
+        }
+        if(!isBgCommand())
+        {
+            smash.current_job = smash.jobs.getJobByPid(new_pid);
+            waitpid(new_pid, NULL, WUNTRACED);
+            smash.current_job = nullptr;
+        }
+    }
+    else{ // son's code:
+        setpgrp();
+        char cmd_args[COMMAND_MAX_ARGS+1];
+        strcpy(cmd_args, this->get_cmd_line().c_str());
+        char bash_path[COMMAND_ARGS_MAX_LENGTH+1];
+        strcpy(bash_path, SMASH_BASH_PATH);
+        char c_arg[COMMAND_ARGS_MAX_LENGTH+1];
+        strcpy(c_arg, SMASH_C_ARG);
+        char *args[] = {bash_path, c_arg, cmd_args, NULL};
+        if (execv(SMASH_BASH_PATH, args) == -1)
+        {
+            cerr << "smash error: execvp failed" << endl;
+            return;
+        }
+    }
+}
