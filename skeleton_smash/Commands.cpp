@@ -195,8 +195,6 @@ void SmallShell::executeCommand(std::string cmd_line) {
     std::shared_ptr<Command> cmd = CreateCommand(cmd_line);
     if (!cmd){throw;}
     cmd->execute();
-
-  // Please note that you must fork smash process for some commands (e.g., external commands....)
 }
 
 void SmallShell::smash_print(const string input)
@@ -306,9 +304,10 @@ void JobsList::delete_finished_jobs() {
     int status;
     do
     {
-        child_pid = waitpid(-1, &status ,WNOHANG);
+        child_pid = waitpid(-1, &status, WNOHANG);
         if (child_pid > 0 && WIFEXITED(status))
         {
+            cout << "deleting job with pid " << child_pid << " and status " << status << endl;
             delete_job_by_pid(child_pid);
         }
     } while (child_pid > 0); //while we deleted a child, so maybe there are more left.
@@ -544,10 +543,12 @@ void ExternalCommand::execute()
     }
     else if (new_pid > 0){ // parent
 
-        if(get_cmd_line().compare("") != 0){
+        if(not get_cmd_line().empty()){
             smash.addJob(get_name(), new_pid);
+            cout << "added job with pid " << new_pid << endl;
             if (run_in_foreground())
             {
+                cout << "run in foreground" << endl;
                 waitpid(new_pid, NULL, 0);
                 smash.deleteJob(new_pid);
             }
