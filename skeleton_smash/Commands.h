@@ -149,7 +149,7 @@ public:
     int get_new_id();
     void delete_job_by_pid(pid_t pid);
     void delete_job_by_id(int jobId);
-    void delete_finished_jobs();
+    void delete_finished_jobs(bool alarm = false);
 public:
     JobsList();
 
@@ -213,6 +213,7 @@ public:
 class SmallShell {
 private:
     pid_t smash_pid;
+    pid_t fg_pid;
     std::string prompt;
     std::string prev_path;
     JobsList jobsList;
@@ -241,14 +242,17 @@ public:
     void smash_error(const std::string input);
     void setCurrentPrompt(const std::string &new_prompt);
     const std::string &getCurrentPrompt() const;
+    std::string &getPrevPath();
+    
+    std::shared_ptr<JobsList::JobEntry> getJobById(int Id);
+    pid_t getPidById(int Id);
+    void addJob(std::string cmd, pid_t pid);
+    void deleteJob(pid_t pid);
     int get_num_jobs() const;
     void printJobs() const;
     void killall();
-    std::shared_ptr<JobsList::JobEntry> getJobById(int Id);
-    pid_t getPidById(int Id);
-    std::string &getPrevPath();
-    void addJob(std::string cmd, pid_t pid);
-    void deleteJob(pid_t pid);
+    void set_fg_pid(pid_t pid);
+    void ctrlCHandler(int sig_num);
 };
 
 #endif //SMASH_COMMAND_H_
