@@ -288,7 +288,8 @@ void JobsList::delete_job_by_pid(pid_t pid){
     {
         if (jobs[i] && jobs[i]->get_pid() == pid)
         {
-            jobs.erase(jobs.begin() + i); //deletes the i-th element from jobs
+            // jobs.erase(jobs.begin() + i); //deletes the i-th element from jobs
+            jobs[i] = nullptr;
             return;
         }
     }
@@ -305,17 +306,11 @@ void JobsList::delete_finished_jobs() {
     do
     {
         child_pid = waitpid(-1, &status, WNOHANG);
-        if (child_pid > 0 && WIFEXITED(status))
+        if (child_pid > 0)
         {
             delete_job_by_pid(child_pid);
         }
     } while (child_pid > 0); //while we deleted a child, so maybe there are more left.
-
-//    for (int i = 0; i < MAX_JOBS-1; ++i) {
-//        if (jobs[i]->is_deleted()){
-//
-//        }
-//    }
 }
 
 JobsList::JobsList() : jobs(MAX_JOBS, nullptr) {}
@@ -353,12 +348,11 @@ void JobsList::killAllJobs()
         if (jobs[i])
         {
             jobs_num++;
-            std::shared_ptr<JobEntry> job = jobs[i];
-            to_print += (job->get_pid()) + ": " + job->get_command_name() +"\n";
-            kill(job->get_pid(),SIGKILL);
+            to_print += (std::to_string(jobs[i]->get_pid())) + string(": ") + jobs[i]->get_command_name() + string("\n");
+            kill(jobs[i]->get_pid(),SIGKILL);
         }
     }
-    cout << SmallShell::getInstance().getCurrentPrompt() << ": sending SIGKILL signal to " << jobs_num << "jobs \n" << endl;
+    cout << SmallShell::getInstance().getCurrentPrompt() << ": sending SIGKILL signal to " << jobs_num << " jobs" << endl;
     cout << to_print;
 }
 
@@ -366,8 +360,6 @@ void JobsList::killAllJobs()
 
 bool Command::run_in_foreground()
 {
-    // cout << "string: " << _getLastChar(get_cmd_line()) << endl;
-    // cout << "bool = " << (_getLastChar(get_cmd_line()) != (string("&"))) << endl;
     return (_getLastChar(get_cmd_line()) != (string("&")));
 }
 
@@ -488,14 +480,15 @@ void ForegroundCommand::execute()
     }
     else
     {
-        cout << job->get_command_name() << " " << job->get_pid() << endl;
-        waitpid(job->get_pid(),nullptr,WUNTRACED);
+        cout << job->get_command_name() << job->get_pid() << endl;
+        waitpid(job->get_pid(),nullptr,0);
+        SmallShell::getInstance().deleteJob(job->get_pid());
     }
 }
 
 void QuitCommand::execute()
 {
-    bool kill = ((_get_nth_word(get_cmd_line(),2)) == "kill");
+    bool kill = ((_get_nth_word(get_cmd_line(),2)) == string("kill"));
     if (kill && _get_nth_word(get_cmd_line(),3).empty()) // the string is empty except first 2 words
     {
         SmallShell::getInstance().killall();
@@ -553,6 +546,8 @@ void ExternalCommand::execute()
     }
     else{ // child's code:
         setpgrp();
+        sleep(stoi(_get_nth_word(get_cmd_line(),2)));
+        exit(0);
         char cmd_args[COMMAND_MAX_ARGS+1];
         strcpy(cmd_args, this->get_cmd_line().c_str());
         char bash_path[COMMAND_ARGS_MAX_LENGTH+1];
