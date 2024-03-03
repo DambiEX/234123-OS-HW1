@@ -3,9 +3,14 @@
 #include <iostream>
 #include <sstream>
 #include <sys/wait.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <iomanip>
 #include <algorithm>
 #include "Commands.h"
+#include <fstream>
+
 
 
 using namespace std;
@@ -191,15 +196,21 @@ std::shared_ptr<Command> SmallShell::CreateCommand(std::string cmd_line) {
 }
 
 void SmallShell::executeCommand(std::string cmd_line) {
+    int cout_fd = setIO(cmd_line);
+    std::string cmd_text = cmd_line;
+    if (cout_fd){
+        std::string cmd_text = cmd_line.substr(0, cmd_line.find(">")); //off by one?
+    }
     delete_finished_jobs();
-    std::shared_ptr<Command> cmd = CreateCommand(cmd_line);
+    std::shared_ptr<Command> cmd = CreateCommand(cmd_text);
     if (!cmd){throw;}
     cmd->execute();
+    defaultIO(cout_fd);
 }
 
 void SmallShell::smash_print(const string input)
 {
-    cout << getCurrentPrompt() << PROMPT_SUFFIX << input << endl; //TODO: endl or not to endl?
+    std::cout << getCurrentPrompt() << PROMPT_SUFFIX << input << endl; //TODO: endl or not to endl?
 }
 
 void SmallShell::smash_error(const string input)
@@ -259,6 +270,38 @@ void SmallShell::delete_finished_jobs() {
     jobsList.delete_finished_jobs();
 }
 
+int SmallShell::setIO(std::string cmd_line)
+{
+    __SIZE_TYPE__ pos = cmd_line.find(">");
+    if (pos == std::string::npos){
+        return 0;
+    }
+    
+    string output_path = _removeFirstWords(cmd_line.substr(pos), 1);
+    int old_cout = dup(STDOUT_FILENO);
+    int fd;
+    if (cmd_line[pos+1] == '>') //>> append
+    {
+        fd = open(output_path.c_str(), O_CREAT | O_WRONLY | O_APPEND, 0755);
+    }
+    else //> overwrite
+    {
+        cout <<"pos: "<< pos <<" cmd[pos+1] " << cmd_line[pos+1] << endl;
+        fd = open(output_path.c_str(), O_CREAT | O_WRONLY, 0755);
+    }
+    dup2(fd, STDOUT_FILENO);
+    close(fd);
+    return old_cout;
+}
+
+void SmallShell::defaultIO(int old_cout){
+    if(old_cout)
+    {
+        close(STDOUT_FILENO);
+        dup2(old_cout, STDOUT_FILENO);
+        close(old_cout);
+    }
+}
 
 //-----------------------------------------JOBS-------------------------------//
 
@@ -352,8 +395,8 @@ void JobsList::killAllJobs()
             kill(jobs[i]->get_pid(),SIGKILL);
         }
     }
-    cout << SmallShell::getInstance().getCurrentPrompt() << ": sending SIGKILL signal to " << jobs_num << " jobs" << endl;
-    cout << to_print;
+    std::cout << SmallShell::getInstance().getCurrentPrompt() << ": sending SIGKILL signal to " << jobs_num << " jobs" << endl;
+    std::cout << to_print;
 }
 
 //---------------------------------COMMANDS---------------------------------//
@@ -480,7 +523,7 @@ void ForegroundCommand::execute()
     }
     else
     {
-        cout << job->get_command_name() << job->get_pid() << endl;
+        std::cout << job->get_command_name() << job->get_pid() << endl;
         waitpid(job->get_pid(),nullptr,0);
         SmallShell::getInstance().deleteJob(job->get_pid());
     }
@@ -520,7 +563,7 @@ void KillCommand::execute()
     }
     kill(target_pid, signum);
     // SmallShell::getInstance().deleteJob(jobId);
-    cout << "signal number " << signum << " was sent to pid " << target_pid << endl;
+    std::cout << "signal number " << signum << " was sent to pid " << target_pid << endl;
 }
 
 //--------------------------------EXTERNAL COMMANDS------------------------//
@@ -546,8 +589,6 @@ void ExternalCommand::execute()
     }
     else{ // child's code:
         setpgrp();
-        sleep(stoi(_get_nth_word(get_cmd_line(),2)));
-        exit(0);
         char cmd_args[COMMAND_MAX_ARGS+1];
         strcpy(cmd_args, this->get_cmd_line().c_str());
         char bash_path[COMMAND_ARGS_MAX_LENGTH+1];

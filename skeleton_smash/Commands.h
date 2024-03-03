@@ -13,6 +13,7 @@
 #define COMMAND_MAX_ARGS (20)
 #define MIN_SIGNUM 0
 #define MAX_SIGNUM 32
+#define DEFAULT_IO std::string("")
 
 class SmallShell;
 class Command {
@@ -217,6 +218,8 @@ private:
     JobsList jobsList;
     SmallShell(); // ctor
     void delete_finished_jobs();
+    int setIO(std::string cmd_line);
+    void defaultIO(int cout_fd);
 public:
     std::shared_ptr<Command> CreateCommand(std::string cmd_line);
 
