@@ -307,7 +307,6 @@ void JobsList::delete_finished_jobs() {
         child_pid = waitpid(-1, &status, WNOHANG);
         if (child_pid > 0 && WIFEXITED(status))
         {
-            cout << "deleting job with pid " << child_pid << " and status " << status << endl;
             delete_job_by_pid(child_pid);
         }
     } while (child_pid > 0); //while we deleted a child, so maybe there are more left.
@@ -545,10 +544,8 @@ void ExternalCommand::execute()
 
         if(not get_cmd_line().empty()){
             smash.addJob(get_name(), new_pid);
-            cout << "added job with pid " << new_pid << endl;
             if (run_in_foreground())
             {
-                cout << "run in foreground" << endl;
                 waitpid(new_pid, NULL, 0);
                 smash.deleteJob(new_pid);
             }
