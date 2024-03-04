@@ -14,6 +14,8 @@
 #define MIN_SIGNUM 0
 #define MAX_SIGNUM 32
 #define DEFAULT_IO std::string("")
+#define OVERWRITE 1
+#define APPEND 2
 
 class SmallShell;
 class Command {
@@ -220,6 +222,7 @@ private:
     void delete_finished_jobs();
     int setIO(std::string cmd_line);
     void defaultIO(int cout_fd);
+    int get_redirection_type(std::string cmd_line, int pos, bool pipe=false);
 public:
     std::shared_ptr<Command> CreateCommand(std::string cmd_line);
 
