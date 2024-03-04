@@ -277,16 +277,18 @@ int SmallShell::setIO(std::string cmd_line)
         return 0;
     }
     
-    string output_path = _removeFirstWords(cmd_line.substr(pos), 1);
+    string output_path;
     int old_cout = dup(STDOUT_FILENO);
     int fd;
     if (cmd_line[pos+1] == '>') //>> append
     {
+        output_path = output_path = _trim(cmd_line.substr(pos+2));
         fd = open(output_path.c_str(), O_CREAT | O_WRONLY | O_APPEND, 0755);
     }
     else //> overwrite
     {
-        cout <<"pos: "<< pos <<" cmd[pos+1] " << cmd_line[pos+1] << endl;
+        output_path = output_path = _trim(cmd_line.substr(pos+1));
+        // cout <<"pos: "<< pos <<" cmd[pos+1] " << cmd_line[pos+1] << endl;
         fd = open(output_path.c_str(), O_CREAT | O_WRONLY, 0755);
     }
     dup2(fd, STDOUT_FILENO);
