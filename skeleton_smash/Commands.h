@@ -14,6 +14,8 @@
 #define MIN_SIGNUM 0
 #define MAX_SIGNUM 32
 #define DEFAULT_IO std::string("")
+#define PARENT 0
+#define CHILD 1
 
 class SmallShell;
 class Command {
@@ -46,6 +48,8 @@ public:
 };
 
 class ExternalCommand : public Command {
+private:
+    int setPipe(int piping, int* my_pipe, bool is_child);
 public:
     ExternalCommand(std::string cmd_line) : Command(cmd_line) {};
 

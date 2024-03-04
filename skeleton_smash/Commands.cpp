@@ -570,13 +570,32 @@ void KillCommand::execute()
 
 //--------------------------------EXTERNAL COMMANDS------------------------//
 
+int ExternalCommand::setPipe(int piping, int *my_pipe, bool is_child)
+{
+    if (is_child = PARENT)
+    {    
+        if (piping)
+        {
+            int old_cout = dup(STDOUT_FILENO);
+            close(my_pipe[1]); //close write
+        }
+        if (piping)
+        {
+            close(my_pipe[0]);
+            dup2(my_pipe[0],0);
+            close(my_pipe[0]);
+            close(my_pipe[1]);
+        }
+    }
+}
+
 void ExternalCommand::execute()
 {
     SmallShell &smash = SmallShell::getInstance();
     int piping = to_pipe(get_cmd_line());
+    int pipedes[2];
     if (piping)
     {
-        int* pipedes;
         int pipe_worked = pipe(pipedes);
     }
     
@@ -586,15 +605,9 @@ void ExternalCommand::execute()
         return;
     }
     else if (new_pid > 0){ // parent
+        setPipe(piping, pipedes, PARENT);
         if(not get_cmd_line().empty()){
             smash.addJob(get_name(), new_pid);
-            
-            if (piping)
-            {
-                int old_cout;
-                
-            }
-            
             if (run_in_foreground())
             {
                 waitpid(new_pid, NULL, 0);
@@ -603,6 +616,7 @@ void ExternalCommand::execute()
         }
     }
     else{ // child's code:
+        setPipe(piping, pipedes, CHILD);
         setpgrp();
         char cmd_args[COMMAND_MAX_ARGS+1];
         strcpy(cmd_args, this->get_cmd_line().c_str());
