@@ -571,15 +571,28 @@ void KillCommand::execute()
 void ExternalCommand::execute()
 {
     SmallShell &smash = SmallShell::getInstance();
+    int piping = to_pipe(get_cmd_line());
+    if (piping)
+    {
+        int* pipedes;
+        int pipe_worked = pipe(pipedes);
+    }
+    
     pid_t new_pid = fork();
     if (new_pid < 0){
         perror("smash error: fork failed");
         return;
     }
     else if (new_pid > 0){ // parent
-
         if(not get_cmd_line().empty()){
             smash.addJob(get_name(), new_pid);
+            
+            if (piping)
+            {
+                int old_cout;
+                
+            }
+            
             if (run_in_foreground())
             {
                 waitpid(new_pid, NULL, 0);
