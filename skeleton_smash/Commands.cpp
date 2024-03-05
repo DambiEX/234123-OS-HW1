@@ -202,13 +202,14 @@ void SmallShell::executeCommand(std::string cmd_line) {
     int cout_fd = setIO(cmd_line);
     std::string cmd_text = cmd_line;
     if (cout_fd){
-        std::string cmd_text = cmd_line.substr(0, cmd_line.find(">")); //off by one?
+        defaultIO(cout_fd);
+        return;
     }
     delete_finished_jobs();
     std::shared_ptr<Command> cmd = CreateCommand(cmd_text);
     if (!cmd){throw;}
     cmd->execute();
-    defaultIO(cout_fd);
+    
 }
 
 void SmallShell::smash_print(const string input)
@@ -293,6 +294,11 @@ int get_redirection_type(std::string cmd_line,__SIZE_TYPE__ pos, bool pipe = fal
 int SmallShell::setIO(std::string cmd_line)
 {
     __SIZE_TYPE__ pos = cmd_line.find(">");
+    if (not pos)
+    {
+        pos = cmd_line.find("|");
+    }
+    std::string cmd_text = cmd_line.substr(0, pos); //off by one?
     int redirection_type = get_redirection_type(cmd_line, pos);
     if (not redirection_type)
     {
@@ -595,7 +601,7 @@ void KillCommand::execute()
 
 int ExternalCommand::setPipe(int piping_mode, int *my_pipe, bool is_child)
 {
-    if (piping_mode == 0) return -1;
+    if (piping_mode == 0) return 0;
     if (is_child = PARENT)
     {    
         int old_cout = dup(STDIN_FILENO);
@@ -605,7 +611,8 @@ int ExternalCommand::setPipe(int piping_mode, int *my_pipe, bool is_child)
         int pos = get_cmd_line().find("|") + piping_mode;
         std::shared_ptr<Command> in_command = SmallShell::getInstance().CreateCommand(_trim(get_cmd_line().substr(pos)));
         in_command->execute();
-        return old_cout;
+        dup2(old_cout, STDIN_FILENO);
+        return 1;
     }
     else //child
     {
@@ -633,7 +640,7 @@ void ExternalCommand::execute()
         return;
     }
     else if (new_pid > 0){ // parent
-        if (setPipe(piping, pipedes, PARENT) != -1) // if redirecting input to pipe
+        if (setPipe(piping, pipedes, PARENT)) // if redirecting input to pipe
         {
             return;
         }
