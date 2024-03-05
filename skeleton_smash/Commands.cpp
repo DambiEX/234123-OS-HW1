@@ -190,6 +190,9 @@ std::shared_ptr<Command> SmallShell::CreateCommand(std::string cmd_line) {
   else if (firstWord.compare("kill") == 0) {
       return std::shared_ptr<Command>(new KillCommand(cmd_line));
   }
+    else if (firstWord.compare("chmod") == 0) {
+      return std::shared_ptr<Command>(new ChmodCommand(cmd_line));
+  }
   else {
       return std::shared_ptr<Command>(new ExternalCommand(cmd_line));
   }
@@ -307,7 +310,7 @@ void SmallShell::defaultIO(int old_cout){
     }
 }
 
-int SmallShell::get_redirection_type(std::string cmd_line, int pos, bool pipe)
+int SmallShell::get_redirection_type(std::string cmd_line,__SIZE_TYPE__ pos, bool pipe)
 {
     if (pos == std::string::npos){
         return 0;
@@ -622,5 +625,60 @@ void ExternalCommand::execute()
             cerr << "smash error: execvp failed" << endl;
             return;
         }
+    }
+}
+
+bool isValidOctal(const std::string& str) {
+    if (str.size() != 3)
+    {
+        return false;
+    }
+    
+    for (char c : str) {
+        if (c < '0' || c > '7')
+            return false;
+    }
+    return true;
+}
+
+void ChmodCommand::execute()
+{
+    if (not _removeFirstWords(get_cmd_line(),3).empty())
+    {
+        smash_error("chmod: invalid aruments");
+        return;
+    }
+
+    // Extract new mode from command line arguments
+    int new_mode;
+    string second_word = _get_nth_word(get_cmd_line(),2);
+    if (! isValidOctal(second_word))
+    {
+        smash_error("chmod: invalid aruments");
+        return;    
+    }
+    
+    if (second_word.empty())
+    {
+        smash_error("chmod: invalid aruments");
+        return;    
+    }
+    try
+    {
+        new_mode = stoi(second_word, nullptr, OCTAL);
+    }
+    catch(const std::invalid_argument&)
+    {
+        smash_error("chmod: invalid aruments");
+        return;
+    }
+    const char* path = _get_nth_word(get_cmd_line(),3).c_str();
+
+    // Change file mode
+    cout << "new mode: " << new_mode << " path: " << path << endl;
+    if (chmod(path, new_mode) == 0) {
+        std::cout << "File mode changed successfully." << std::endl;
+    } else {
+        std::cerr << "Failed to change file mode." << std::endl;
     }
 }

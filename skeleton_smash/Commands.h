@@ -16,6 +16,7 @@
 #define DEFAULT_IO std::string("")
 #define OVERWRITE 1
 #define APPEND 2
+#define OCTAL 8
 
 class SmallShell;
 class Command {
@@ -204,7 +205,7 @@ public:
 
 class ChmodCommand : public BuiltInCommand {
 public:
-    ChmodCommand(std::string cmd_line);
+    ChmodCommand(std::string cmd_line) : BuiltInCommand(cmd_line){};
 
     virtual ~ChmodCommand() {}
 
@@ -222,7 +223,7 @@ private:
     void delete_finished_jobs();
     int setIO(std::string cmd_line);
     void defaultIO(int cout_fd);
-    int get_redirection_type(std::string cmd_line, int pos, bool pipe=false);
+    int get_redirection_type(std::string cmd_line, __SIZE_TYPE__ pos, bool pipe=false);
 public:
     std::shared_ptr<Command> CreateCommand(std::string cmd_line);
 
