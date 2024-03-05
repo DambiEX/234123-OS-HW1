@@ -190,6 +190,9 @@ std::shared_ptr<Command> SmallShell::CreateCommand(std::string cmd_line) {
   else if (firstWord.compare("kill") == 0) {
       return std::shared_ptr<Command>(new KillCommand(cmd_line));
   }
+    else if (firstWord.compare("chmod") == 0) {
+      return std::shared_ptr<Command>(new ChmodCommand(cmd_line));
+  }
   else {
       return std::shared_ptr<Command>(new ExternalCommand(cmd_line));
   }
@@ -270,17 +273,36 @@ void SmallShell::delete_finished_jobs() {
     jobsList.delete_finished_jobs();
 }
 
+int get_redirection_type(std::string cmd_line,__SIZE_TYPE__ pos, bool pipe = false)
+{
+    if (pos == std::string::npos){
+        return 0;
+    }
+    char special_char = '>';
+    if (pipe)
+    {
+        special_char = '&';
+    }
+    if (cmd_line[pos+1] == special_char) //>> append
+    {
+        return APPEND;
+    }
+    else return OVERWRITE;
+}
+
 int SmallShell::setIO(std::string cmd_line)
 {
     __SIZE_TYPE__ pos = cmd_line.find(">");
-    if (pos == std::string::npos){
+    int redirection_type = get_redirection_type(cmd_line, pos);
+    if (not redirection_type)
+    {
         return 0;
     }
     
     string output_path;
     int old_cout = dup(STDOUT_FILENO);
     int fd;
-    if (cmd_line[pos+1] == '>') //>> append
+    if (redirection_type == APPEND) //>> append
     {
         output_path = output_path = _trim(cmd_line.substr(pos+2));
         fd = open(output_path.c_str(), O_CREAT | O_WRONLY | O_APPEND, 0755);
@@ -304,6 +326,7 @@ void SmallShell::defaultIO(int old_cout){
         close(old_cout);
     }
 }
+
 
 //-----------------------------------------JOBS-------------------------------//
 
@@ -570,29 +593,34 @@ void KillCommand::execute()
 
 //--------------------------------EXTERNAL COMMANDS------------------------//
 
-int ExternalCommand::setPipe(int piping, int *my_pipe, bool is_child)
+int ExternalCommand::setPipe(int piping_mode, int *my_pipe, bool is_child)
 {
+    if (piping_mode == 0) return -1;
     if (is_child = PARENT)
     {    
-        if (piping)
-        {
-            int old_cout = dup(STDOUT_FILENO);
-            close(my_pipe[1]); //close write
-        }
-        if (piping)
-        {
-            close(my_pipe[0]);
-            dup2(my_pipe[0],0);
-            close(my_pipe[0]);
-            close(my_pipe[1]);
-        }
+        int old_cout = dup(STDIN_FILENO);
+        close(my_pipe[1]); //close write
+        dup2(my_pipe[0],STDIN_FILENO); //set stdin to be pipe read
+        close(my_pipe[0]);
+        int pos = get_cmd_line().find("|") + piping_mode;
+        std::shared_ptr<Command> in_command = SmallShell::getInstance().CreateCommand(_trim(get_cmd_line().substr(pos)));
+        in_command->execute();
+        return old_cout;
+    }
+    else //child
+    {
+        close(my_pipe[0]); //close read
+        dup2(my_pipe[1], piping_mode); //set stdout to be pipe write
+        close(my_pipe[1]);
+        return 1;
     }
 }
 
 void ExternalCommand::execute()
 {
     SmallShell &smash = SmallShell::getInstance();
-    int piping = to_pipe(get_cmd_line());
+    __SIZE_TYPE__ pos = get_cmd_line().find("|");
+    int piping = get_redirection_type(get_cmd_line(), pos, PIPE);
     int pipedes[2];
     if (piping)
     {
@@ -605,7 +633,10 @@ void ExternalCommand::execute()
         return;
     }
     else if (new_pid > 0){ // parent
-        setPipe(piping, pipedes, PARENT);
+        if (setPipe(piping, pipedes, PARENT) != -1) // if redirecting input to pipe
+        {
+            return;
+        }
         if(not get_cmd_line().empty()){
             smash.addJob(get_name(), new_pid);
             if (run_in_foreground())
@@ -630,5 +661,60 @@ void ExternalCommand::execute()
             cerr << "smash error: execvp failed" << endl;
             return;
         }
+    }
+}
+
+bool isValidOctal(const std::string& str) {
+    if (str.size() != 3)
+    {
+        return false;
+    }
+    
+    for (char c : str) {
+        if (c < '0' || c > '7')
+            return false;
+    }
+    return true;
+}
+
+void ChmodCommand::execute()
+{
+    if (not _removeFirstWords(get_cmd_line(),3).empty())
+    {
+        smash_error("chmod: invalid aruments");
+        return;
+    }
+
+    // Extract new mode from command line arguments
+    int new_mode;
+    string second_word = _get_nth_word(get_cmd_line(),2);
+    if (! isValidOctal(second_word))
+    {
+        smash_error("chmod: invalid aruments");
+        return;    
+    }
+    
+    if (second_word.empty())
+    {
+        smash_error("chmod: invalid aruments");
+        return;    
+    }
+    try
+    {
+        new_mode = stoi(second_word, nullptr, OCTAL);
+    }
+    catch(const std::invalid_argument&)
+    {
+        smash_error("chmod: invalid aruments");
+        return;
+    }
+    const char* path = _get_nth_word(get_cmd_line(),3).c_str();
+
+    // Change file mode
+    cout << "new mode: " << new_mode << " path: " << path << endl;
+    if (chmod(path, new_mode) == 0) {
+        std::cout << "File mode changed successfully." << std::endl;
+    } else {
+        std::cerr << "Failed to change file mode." << std::endl;
     }
 }

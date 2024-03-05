@@ -16,6 +16,10 @@
 #define DEFAULT_IO std::string("")
 #define PARENT 0
 #define CHILD 1
+#define OVERWRITE 1
+#define APPEND 2
+#define OCTAL 8
+#define PIPE 1
 
 class SmallShell;
 class Command {
@@ -49,7 +53,7 @@ public:
 
 class ExternalCommand : public Command {
 private:
-    int setPipe(int piping, int* my_pipe, bool is_child);
+    int setPipe(int piping_mode, int* my_pipe, bool is_child);
 public:
     ExternalCommand(std::string cmd_line) : Command(cmd_line) {};
 
@@ -206,7 +210,7 @@ public:
 
 class ChmodCommand : public BuiltInCommand {
 public:
-    ChmodCommand(std::string cmd_line);
+    ChmodCommand(std::string cmd_line) : BuiltInCommand(cmd_line){};
 
     virtual ~ChmodCommand() {}
 
@@ -224,6 +228,7 @@ private:
     void delete_finished_jobs();
     int setIO(std::string cmd_line);
     void defaultIO(int cout_fd);
+    // int get_redirection_type(std::string cmd_line, __SIZE_TYPE__ pos, bool pipe=false);
 public:
     std::shared_ptr<Command> CreateCommand(std::string cmd_line);
 
