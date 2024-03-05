@@ -20,6 +20,7 @@
 #define APPEND 2
 #define OCTAL 8
 #define PIPE 1
+#define ERROR_FD -2
 
 class SmallShell;
 class Command {
@@ -52,8 +53,6 @@ public:
 };
 
 class ExternalCommand : public Command {
-private:
-    int setPipe(int piping_mode, int* my_pipe, bool is_child);
 public:
     ExternalCommand(std::string cmd_line) : Command(cmd_line) {};
 
@@ -228,6 +227,8 @@ private:
     void delete_finished_jobs();
     int setIO(std::string cmd_line);
     void defaultIO(int cout_fd);
+    int setPipe(int redirection_type, std::string cmd_line);
+    std::string trim_for_pipe(std::string cmd_line);
     // int get_redirection_type(std::string cmd_line, __SIZE_TYPE__ pos, bool pipe=false);
 public:
     std::shared_ptr<Command> CreateCommand(std::string cmd_line);

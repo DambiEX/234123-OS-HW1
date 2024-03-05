@@ -199,17 +199,19 @@ std::shared_ptr<Command> SmallShell::CreateCommand(std::string cmd_line) {
 }
 
 void SmallShell::executeCommand(std::string cmd_line) {
-    int cout_fd = setIO(cmd_line);
-    std::string cmd_text = cmd_line;
-    if (cout_fd){
-        defaultIO(cout_fd);
-        return;
-    }
     delete_finished_jobs();
-    std::shared_ptr<Command> cmd = CreateCommand(cmd_text);
+
+    int cout_fd = setIO(cmd_line);
+    std::string cmd_line_edit = cmd_line;
+    if (cout_fd == ERROR_FD) return;
+    else if (cout_fd >= 0){
+    cmd_line_edit = _trim(cmd_line.substr(0, cmd_line.find(">")));
+    }
+    std::shared_ptr<Command> cmd = CreateCommand(cmd_line_edit);
     if (!cmd){throw;}
     cmd->execute();
     
+    defaultIO(cout_fd);
 }
 
 void SmallShell::smash_print(const string input)
@@ -293,30 +295,31 @@ int get_redirection_type(std::string cmd_line,__SIZE_TYPE__ pos, bool pipe = fal
 
 int SmallShell::setIO(std::string cmd_line)
 {
+    int piping = not PIPE;
     __SIZE_TYPE__ pos = cmd_line.find(">");
     if (not pos)
     {
         pos = cmd_line.find("|");
+        if (pos)
+        {
+            piping = PIPE;
+        }
     }
-    std::string cmd_text = cmd_line.substr(0, pos); //off by one?
-    int redirection_type = get_redirection_type(cmd_line, pos);
+    int redirection_type = get_redirection_type(cmd_line, pos, piping);
     if (not redirection_type)
     {
-        return 0;
+        return -1;
     }
     
-    string output_path;
+    if (piping) return setPipe(redirection_type, cmd_line);
+
+    string output_path = _trim(cmd_line.substr(pos+redirection_type));
     int old_cout = dup(STDOUT_FILENO);
     int fd;
-    if (redirection_type == APPEND) //>> append
-    {
-        output_path = output_path = _trim(cmd_line.substr(pos+2));
+    if (redirection_type == APPEND){ //>> append
         fd = open(output_path.c_str(), O_CREAT | O_WRONLY | O_APPEND, 0755);
     }
-    else //> overwrite
-    {
-        output_path = output_path = _trim(cmd_line.substr(pos+1));
-        // cout <<"pos: "<< pos <<" cmd[pos+1] " << cmd_line[pos+1] << endl;
+    else{ //> overwrite
         fd = open(output_path.c_str(), O_CREAT | O_WRONLY, 0755);
     }
     dup2(fd, STDOUT_FILENO);
@@ -325,7 +328,7 @@ int SmallShell::setIO(std::string cmd_line)
 }
 
 void SmallShell::defaultIO(int old_cout){
-    if(old_cout)
+    if(old_cout >= 0)
     {
         close(STDOUT_FILENO);
         dup2(old_cout, STDOUT_FILENO);
@@ -426,7 +429,7 @@ void JobsList::killAllJobs()
             kill(jobs[i]->get_pid(),SIGKILL);
         }
     }
-    std::cout << SmallShell::getInstance().getCurrentPrompt() << ": sending SIGKILL signal to " << jobs_num << " jobs" << endl;
+    std::cout << SmallShell::getInstance().getCurrentPrompt() << ": sending SIGKILL signal to " << jobs_num << " jobs:" << endl;
     std::cout << to_print;
 }
 
@@ -599,51 +602,55 @@ void KillCommand::execute()
 
 //--------------------------------EXTERNAL COMMANDS------------------------//
 
-int ExternalCommand::setPipe(int piping_mode, int *my_pipe, bool is_child)
+int SmallShell::setPipe(int redirection_type,  std::string cmd_line)
 {
-    if (piping_mode == 0) return 0;
-    if (is_child = PARENT)
-    {    
-        int old_cout = dup(STDIN_FILENO);
-        close(my_pipe[1]); //close write
-        dup2(my_pipe[0],STDIN_FILENO); //set stdin to be pipe read
-        close(my_pipe[0]);
-        int pos = get_cmd_line().find("|") + piping_mode;
-        std::shared_ptr<Command> in_command = SmallShell::getInstance().CreateCommand(_trim(get_cmd_line().substr(pos)));
-        in_command->execute();
-        dup2(old_cout, STDIN_FILENO);
-        return 1;
-    }
-    else //child
+    if (redirection_type == 0) return -1;
+    int pos = cmd_line.find("|");
+    int my_pipe[2];
+    int pipe_worked = pipe(my_pipe);
+    if (pipe_worked)    
     {
-        close(my_pipe[0]); //close read
-        dup2(my_pipe[1], piping_mode); //set stdout to be pipe write
-        close(my_pipe[1]);
-        return 1;
+        pid_t new_pid = fork();
+        if (new_pid < 0){
+            perror("smash error: fork failed");
+            return -1;
+        }
+            else if (new_pid > 0){ // parent
+            int old_cout = dup(STDIN_FILENO);
+            close(my_pipe[1]); //close write
+            dup2(my_pipe[0],STDIN_FILENO); //set stdin to be pipe read
+            close(my_pipe[0]);
+            std::shared_ptr<Command> in_command = SmallShell::getInstance().CreateCommand(_trim(cmd_line.substr(pos + redirection_type)));
+            in_command->execute();
+            close(STDIN_FILENO);
+            dup2(old_cout, STDIN_FILENO);
+            close(old_cout);
+            return ERROR_FD;      
+        }
+        else
+        {
+            setpgrp();
+            close(my_pipe[0]); //close read
+            dup2(my_pipe[1], redirection_type); //set stdout/err to be pipe write
+            close(my_pipe[1]);
+            std::shared_ptr<Command> in_command = SmallShell::getInstance().CreateCommand(_trim(cmd_line.substr(0,pos)));
+            in_command->execute();
+            exit(0);
+        }
     }
+    else perror("pipe creation failed"); //TODO: error code
+    return -1;     
 }
 
 void ExternalCommand::execute()
 {
-    SmallShell &smash = SmallShell::getInstance();
-    __SIZE_TYPE__ pos = get_cmd_line().find("|");
-    int piping = get_redirection_type(get_cmd_line(), pos, PIPE);
-    int pipedes[2];
-    if (piping)
-    {
-        int pipe_worked = pipe(pipedes);
-    }
-    
+    SmallShell &smash = SmallShell::getInstance();    
     pid_t new_pid = fork();
     if (new_pid < 0){
         perror("smash error: fork failed");
         return;
     }
     else if (new_pid > 0){ // parent
-        if (setPipe(piping, pipedes, PARENT)) // if redirecting input to pipe
-        {
-            return;
-        }
         if(not get_cmd_line().empty()){
             smash.addJob(get_name(), new_pid);
             if (run_in_foreground())
@@ -654,7 +661,6 @@ void ExternalCommand::execute()
         }
     }
     else{ // child's code:
-        setPipe(piping, pipedes, CHILD);
         setpgrp();
         char cmd_args[COMMAND_MAX_ARGS+1];
         strcpy(cmd_args, this->get_cmd_line().c_str());
