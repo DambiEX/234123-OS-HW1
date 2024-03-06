@@ -532,6 +532,12 @@ void KillCommand::execute()
 
 //--------------------------------EXTERNAL COMMANDS------------------------//
 
+bool check_complex_command (const string cmd_line) {
+    if(cmd_line.find("?") != std::string::npos || cmd_line.find("*") != std::string::npos)
+        return true;
+    return false;
+}
+
 void ExternalCommand::execute()
 {
     SmallShell &smash = SmallShell::getInstance();
@@ -555,15 +561,33 @@ void ExternalCommand::execute()
         setpgrp();
         char cmd_args[COMMAND_MAX_ARGS+1];
         strcpy(cmd_args, this->get_cmd_line().c_str());
-        char bash_path[COMMAND_ARGS_MAX_LENGTH+1];
-        strcpy(bash_path, SMASH_BASH_PATH);
-        char c_arg[COMMAND_ARGS_MAX_LENGTH+1];
-        strcpy(c_arg, SMASH_C_ARG);
-        char *args[] = {bash_path, c_arg, cmd_args, NULL};
-        if (execv(SMASH_BASH_PATH, args) == -1)
-        {
-            cerr << "smash error: execvp failed" << endl;
-            return;
+        if (check_complex_command(get_cmd_line())){
+            char bash_path[COMMAND_ARGS_MAX_LENGTH+1];
+            strcpy(bash_path, SMASH_BASH_PATH);
+            char c_arg[COMMAND_ARGS_MAX_LENGTH+1];
+            strcpy(c_arg, SMASH_C_ARG);
+            char *args[] = {bash_path, c_arg, cmd_args, NULL};
+            if (execvp(SMASH_BASH_PATH, args) == -1)
+            {
+                cerr << "smash error: execvp failed" << endl;
+                return;
+            }
+
+        }
+        else{
+            char bash_path[COMMAND_ARGS_MAX_LENGTH+1];
+            char *args[] = {bash_path, cmd_args};
+            strcpy(bash_path, this->get_cmd_line().c_str());
+            string firstWord = _getFirstWord(get_cmd_line());
+            if (execv(firstWord.c_str(), args) == -1)
+            {
+                cerr << "smash error: execvp failed" << endl;
+                return;
+            }
         }
     }
 }
+
+
+
+
