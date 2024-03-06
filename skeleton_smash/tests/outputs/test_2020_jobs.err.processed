@@ -1,0 +1,3 @@
+smash error: kill: job-id 10 does not exist
+smash error: fg: invalid arguments
+runner: Timeout, killing child

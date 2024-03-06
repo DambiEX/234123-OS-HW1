@@ -1,0 +1,7 @@
+smash> ./print_args_test.exe 
+smash> ./print_args_test.exe arg1 
+smash> ./print_args_test.exe arg1 arg2 /bin/bash 
+smash> ./print_args_test.exe arg1 arg2 /bin/bash 
+smash> ./print_args_test.exe arg1 arg2 /bin/bash 
+smash> ./print_args_test.exe arg1 arg2 /bin/bash 
+smash> smash: sending SIGKILL signal to 0 jobs:

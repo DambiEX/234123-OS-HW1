@@ -1,0 +1,14 @@
+smash> smash> smash> smash> smash> smash> smash> smash> [1] sleep 500& 
+[2] sleep 200& 
+[3] sleep 300& 
+[4] sleep 400& 
+[5] sleep 600& 
+[6] sleep 700& 
+smash> smash> smash> [1] sleep 500& 
+[2] sleep 800& 
+[3] sleep 900& 
+[5] sleep 600& 
+smash> signal number 9 was sent to pid 2
+smash> smash> smash> [1] sleep 1000& 
+smash> smash> smash> smash> [1] sleep 1001& 
+smash> smash> 

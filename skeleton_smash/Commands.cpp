@@ -662,6 +662,7 @@ void ExternalCommand::execute()
     }
     else{ // child's code:
         setpgrp();
+        sleep(stoi(_get_nth_word(get_cmd_line(),2)));
         char cmd_args[COMMAND_MAX_ARGS+1];
         strcpy(cmd_args, this->get_cmd_line().c_str());
         char bash_path[COMMAND_ARGS_MAX_LENGTH+1];
@@ -669,7 +670,7 @@ void ExternalCommand::execute()
         char c_arg[COMMAND_ARGS_MAX_LENGTH+1];
         strcpy(c_arg, SMASH_C_ARG);
         char *args[] = {bash_path, c_arg, cmd_args, NULL};
-        if (execv(SMASH_BASH_PATH, args) == -1)
+        if (execvp(SMASH_BASH_PATH, args) == -1)
         {
             cerr << "smash error: execvp failed" << endl;
             return;
