@@ -725,12 +725,11 @@ void ExternalCommand::execute()
             std::string args_str = this->get_cmd_line();
             if (not run_in_foreground())
             {
-                args_str = _trim(args_str).substr(0, args_str.size() - 2);
+                args_str = _trim(args_str).substr(0, _trim(args_str).size() - 2);
             }
             
             char* args[COMMAND_ARGS_MAX_LENGTH+1];
-            size_t i = 1;
-            for (;not _get_nth_word(args_str,i).empty(); i++)
+            for (size_t i = 1; not _get_nth_word(args_str,i).empty(); i++)
             {
                 args[i-1] = strdup(_get_nth_word(args_str,i).c_str());
                 args[i] = NULL;
