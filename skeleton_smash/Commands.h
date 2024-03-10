@@ -256,6 +256,7 @@ public:
     
     std::shared_ptr<JobsList::JobEntry> getJobById(int Id);
     pid_t getPidById(int Id);
+    int get_max_id();
     void addJob(std::string cmd, pid_t pid);
     void deleteJob(pid_t pid);
     int get_num_jobs() const;

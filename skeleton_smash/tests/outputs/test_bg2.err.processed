@@ -1,2 +1,6 @@
-smash error: execvp failed
-runner: Timeout, killing child
+smash error: execvp failed: No such file or directory
+smash error: execvp failed: No such file or directory
+smash error: execvp failed: No such file or directory
+smash error: execvp failed: No such file or directory
+smash error: execvp failed: No such file or directory
+smash error: execvp failed: No such file or directory

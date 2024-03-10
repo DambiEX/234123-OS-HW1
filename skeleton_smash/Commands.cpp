@@ -281,10 +281,15 @@ std::shared_ptr<JobsList::JobEntry> SmallShell::getJobById(int Id)
 
 pid_t SmallShell::getPidById(int Id)
 {
-    if (jobsList.getJobById(Id)){
+    if (Id > 0 && jobsList.getJobById(Id)){
         return jobsList.getJobById(Id)->get_pid();
     }
     else return 0;
+}
+
+int SmallShell::get_max_id()
+{
+    return jobsList.get_new_id()-1; //-1 because get_new_id gets max_id+1.?
 }
 
 void SmallShell::delete_finished_jobs() {
@@ -432,7 +437,7 @@ void JobsList::printJobsList() const{
     for (unsigned int i=0; i<jobs.size(); i++){
         if (jobs[i])
         {
-            std::cout << "[" << jobs[i]->get_id() << "] " << jobs[i]->get_command_name() << endl;
+            std::cout << "[" << jobs[i]->get_id() << "] " << _trim(jobs[i]->get_command_name()) << endl;
         }
     }
 }
@@ -463,7 +468,7 @@ bool Command::run_in_foreground()
 
 std::string Command::get_name() const
 {
-    return cmd_line;
+    return _trim(cmd_line);
 }
 
 //--------------------------------BUILT-IN COMMANDS-----------------------//
@@ -542,17 +547,18 @@ void JobsCommand::execute() {
 
 void ForegroundCommand::execute()
 {
+    int job_id = 0;
     if (_get_nth_word(get_cmd_line(),2).empty()) //no second argument
     {
         if (SmallShell::getInstance().get_num_jobs() == 0)
         {
             smash_error("fg: jobs list is empty");
+            return;
         }
         else
         {
-            smash_error("fg: invalid arguments");
+            job_id = SmallShell::getInstance().get_max_id();
         }
-        return;
     }
     if (not _get_nth_word(get_cmd_line(), 3).empty()) // string has more than 2 words
     {
@@ -561,24 +567,28 @@ void ForegroundCommand::execute()
     }
 
     //string is exactly 2 words long, and the first word is "fg"
-    int job_id;
-    try
+    if (job_id == 0)
     {
-        job_id = stoi(_get_nth_word(get_cmd_line(),2));
+        try
+        {
+            job_id = stoi(_get_nth_word(get_cmd_line(),2));
+        }
+        catch(const std::invalid_argument&)
+        {
+            smash_error("fg: invalid arguments");
+            return;
+        }
     }
-    catch(const std::invalid_argument&)
-    {
-        smash_error("fg: invalid arguments");
-        return;
-    }
+    
+    
     std::shared_ptr<JobsList::JobEntry> job = SmallShell::getInstance().getJobById(job_id);
     if (job == nullptr)
     {
-        smash_error("job-id " + std::to_string(job_id) + " does not exist");
+        smash_error("fg: job-id " + std::to_string(job_id) + " does not exist");
     }
     else
     {
-        std::cout << job->get_command_name() << job->get_pid() << endl;
+        std::cout << job->get_command_name() << " " << job->get_pid() << endl;
         SmallShell::getInstance().set_fg_pid(job->get_pid());
         waitpid(job->get_pid(),nullptr,0); //signal may be received here
         SmallShell::getInstance().set_fg_pid(0);
@@ -707,7 +717,7 @@ void ExternalCommand::execute()
             char *args[] = {bash_path, c_arg, cmd_args, NULL};
             if (execvp(SMASH_BASH_PATH, args) == -1)
             {
-                cerr << "smash error: execvp failed" << endl;
+                cerr << "smash error: execvp failed: No such file or directory" << endl;
                 return;
             }
         }
@@ -727,7 +737,7 @@ void ExternalCommand::execute()
             }
             if (execvp(args[0], args) == -1)
             {
-                cerr << "smash error: execvp failed" << endl;
+                cerr << "smash error: execvp failed: No such file or directory" << endl;
                 exit(0);
             }
         }

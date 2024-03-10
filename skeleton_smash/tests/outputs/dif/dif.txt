@@ -1,0 +1,499 @@
+--- ./test_2020_jobs.out.exp	2024-02-10 22:15:38.000000000 +0000
++++ ./test_2020_jobs.out.processed	2024-03-10 13:07:34.864086000 +0000
+@@ -1,209 +1,307 @@
+-smash> smash> smash> smash> smash> smash> smash> smash> [1] sleep 100&
+-[2] sleep 200&
+-[3] sleep 300&
+-[4] sleep 400&
+-[5] sleep 500&
+-[6] sleep 600&
+-[7] sleep 700&
+-smash> smash> smash> [1] sleep 100&
+-[2] sleep 200&
+-[3] sleep 300&
+-[4] sleep 400&
+-[5] sleep 500&
+-[6] sleep 600&
+-[7] sleep 700&
+-[8] sleep 800&
+-[9] sleep 900&
++smash> smash> smash> smash> smash> smash> smash> smash> [1] sleep 100& 
++[2] sleep 200& 
++[3] sleep 300& 
++[4] sleep 400& 
++[5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++smash> smash> smash> [1] sleep 100& 
++[2] sleep 200& 
++[3] sleep 300& 
++[4] sleep 400& 
++[5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
+ smash> signal number 9 was sent to pid 2
+ smash> smash: got ctrl-C
+-[1] sleep 100&
+-[2] sleep 200&
+-[4] sleep 400&
+-[5] sleep 500&
+-[6] sleep 600&
+-[7] sleep 700&
+-[8] sleep 800&
+-[9] sleep 900&
+-smash> smash> [1] sleep 100&
+-[2] sleep 200&
+-[4] sleep 400&
+-[5] sleep 500&
+-[6] sleep 600&
+-[7] sleep 700&
+-[8] sleep 800&
+-[9] sleep 900&
+-[10] sleep 1000&
++[1] sleep 100& 
++[2] sleep 200& 
++[4] sleep 400& 
++[5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++smash> smash> [1] sleep 100& 
++[2] sleep 200& 
++[4] sleep 400& 
++[5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++[10] sleep 1000& 
+ smash> signal number 9 was sent to pid 3
+ smash> smash: got ctrl-C
+-[1] sleep 100&
+-[2] sleep 200&
+-[4] sleep 400&
+-[5] sleep 500&
+-[6] sleep 600&
+-[7] sleep 700&
+-[8] sleep 800&
+-[9] sleep 900&
+-smash> smash> [1] sleep 100&
+-[2] sleep 200&
+-[4] sleep 400&
+-[5] sleep 500&
+-[6] sleep 600&
+-[7] sleep 700&
+-[8] sleep 800&
+-[9] sleep 900&
+-[10] sleep 1001&
+-smash> sleep 1001& 4
+-smash: got ctrl-C
+-smash: process 4 was killed
+-smash> [1] sleep 100&
+-[2] sleep 200&
+-[4] sleep 400&
+-[5] sleep 500&
+-[6] sleep 600&
+-[7] sleep 700&
+-[8] sleep 800&
+-[9] sleep 900&
+-smash> sleep 900& 5
+-smash: got ctrl-C
+-smash: process 5 was killed
+-smash> [1] sleep 100&
+-[2] sleep 200&
+-[4] sleep 400&
+-[5] sleep 500&
+-[6] sleep 600&
+-[7] sleep 700&
+-[8] sleep 800&
+-smash> sleep 800& 6
+-smash: got ctrl-C
+-smash: process 6 was killed
+-smash> [1] sleep 100&
+-[2] sleep 200&
+-[4] sleep 400&
+-[5] sleep 500&
+-[6] sleep 600&
+-[7] sleep 700&
+-smash> sleep 700& 7
+-smash: got ctrl-C
+-smash: process 7 was killed
+-smash> [1] sleep 100&
+-[2] sleep 200&
+-[4] sleep 400&
+-[5] sleep 500&
+-[6] sleep 600&
+-smash> smash: got ctrl-C
+-[1] sleep 100&
+-[2] sleep 200&
+-[4] sleep 400&
+-[5] sleep 500&
+-[6] sleep 600&
++[1] sleep 100& 
++[2] sleep 200& 
++[4] sleep 400& 
++[5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++smash> smash> [1] sleep 100& 
++[2] sleep 200& 
++[4] sleep 400& 
++[5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++[10] sleep 1001& 
++smash> smash> smash: got ctrl-C
++[1] sleep 100& 
++[2] sleep 200& 
++[4] sleep 400& 
++[5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++[10] sleep 1001& 
++smash> smash> smash: got ctrl-C
++[1] sleep 100& 
++[2] sleep 200& 
++[4] sleep 400& 
++[5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++[10] sleep 1001& 
++smash> smash> smash: got ctrl-C
++[1] sleep 100& 
++[2] sleep 200& 
++[4] sleep 400& 
++[5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++[10] sleep 1001& 
++smash> smash> smash: got ctrl-C
++[1] sleep 100& 
++[2] sleep 200& 
++[4] sleep 400& 
++[5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++[10] sleep 1001& 
++smash> smash: got ctrl-C
++[1] sleep 100& 
++[2] sleep 200& 
++[4] sleep 400& 
++[5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++[10] sleep 1001& 
+ smash> smash: got ctrl-C
+-smash: process 8 was killed
++smash: process 4 was killed
+ smash> smash: got ctrl-C
+-[1] sleep 100&
+-[2] sleep 200&
+-[4] sleep 400&
+-[5] sleep 500&
+-[6] sleep 600&
+-smash> smash> [1] sleep 100&
+-[2] sleep 200&
+-[4] sleep 400&
+-[5] sleep 500&
+-[6] sleep 600&
++[1] sleep 100& 
++[2] sleep 200& 
++[4] sleep 400& 
++[5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++[10] sleep 1001& 
++smash> smash> [1] sleep 100& 
++[2] sleep 200& 
++[4] sleep 400& 
++[5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++[10] sleep 1001& 
+ smash> smash: got ctrl-C
+-smash: process 9 was killed
++smash: process 5 was killed
+ smash> smash: got ctrl-C
+-smash: process 10 was killed
++smash: process 6 was killed
+ smash> smash: got ctrl-C
+ smash: got ctrl-C
+ smash: got ctrl-C
+ smash: got ctrl-C
+-[1] sleep 100&
+-[2] sleep 200&
+-[4] sleep 400&
+-[5] sleep 500&
+-[6] sleep 600&
++[1] sleep 100& 
++[2] sleep 200& 
++[4] sleep 400& 
++[5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++[10] sleep 1001& 
+ smash> smash: got ctrl-C
+-smash: process 11 was killed
++smash: process 7 was killed
+ smash> smash: got ctrl-C
+-smash: process 12 was killed
++smash: process 8 was killed
+ smash> smash: got ctrl-C
+-smash: process 13 was killed
++smash: process 9 was killed
+ smash> smash> smash: got ctrl-C
+ smash> smash: got ctrl-C
+ smash> smash: got ctrl-C
+-[1] sleep 100&
+-[2] sleep 200&
+-[4] sleep 400&
+-[5] sleep 500&
+-[6] sleep 600&
+-smash> smash> smash: got ctrl-C
+-smash> smash: got ctrl-C
+-smash> smash> smash> [1] sleep 100&
+-[2] sleep 200&
+-[4] sleep 400&
+-[5] sleep 500&
+-[6] sleep 600&
+-smash> smash> smash> smash> [1] sleep 100&
+-[2] sleep 200&
+-[4] sleep 400&
+-[5] sleep 500&
+-[6] sleep 600&
+-smash> smash> smash> [1] sleep 100&
+-[2] sleep 200&
+-[4] sleep 400&
+-[5] sleep 500&
+-[6] sleep 600&
+-smash> signal number 9 was sent to pid 14
+-smash> smash: got ctrl-C
+-smash> smash: got ctrl-C
+-[2] sleep 200&
+-[4] sleep 400&
+-[5] sleep 500&
+-[6] sleep 600&
+-smash> signal number 9 was sent to pid 15
+-smash> signal number 9 was sent to pid 16
+-smash> smash: got ctrl-C
+-smash> smash> smash> [5] sleep 500&
+-[6] sleep 600&
+-smash> smash> [5] sleep 500&
+-[6] sleep 600&
+-[7] sleep 3&
+-smash> smash: got ctrl-C
+-[5] sleep 500&
+-[6] sleep 600&
+-[7] sleep 3&
+-smash> [5] sleep 500&
+-[6] sleep 600&
+-[7] sleep 3&
+-smash> [5] sleep 500&
+-[6] sleep 600&
+-[7] sleep 3&
+-smash> smash: got ctrl-C
+-[5] sleep 500&
+-[6] sleep 600&
+-[7] sleep 3&
+-smash> sleep 3& 17
+-smash: got ctrl-C
+-smash: process 17 was killed
+-smash> [5] sleep 500&
+-[6] sleep 600&
+-smash> sleep 600& 18
+-smash: got ctrl-C
+-smash: process 18 was killed
+-smash> [5] sleep 500&
+-smash> sleep 500& 19
+-smash: got ctrl-C
+-smash: process 19 was killed
+-smash> smash> smash> [1] sleep 777&
++[1] sleep 100& 
++[2] sleep 200& 
++[4] sleep 400& 
++[5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++[10] sleep 1001& 
++smash> smash> smash: got ctrl-C
++smash> smash: got ctrl-C
++smash> smash> smash> [1] sleep 100& 
++[2] sleep 200& 
++[4] sleep 400& 
++[5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++[10] sleep 1001& 
++smash> smash> smash> smash> [1] sleep 100& 
++[2] sleep 200& 
++[4] sleep 400& 
++[5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++[10] sleep 1001& 
++smash> smash> smash> [1] sleep 100& 
++[2] sleep 200& 
++[4] sleep 400& 
++[5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++[10] sleep 1001& 
++smash> signal number 9 was sent to pid 10
++smash> smash: got ctrl-C
++smash> smash: got ctrl-C
++[2] sleep 200& 
++[4] sleep 400& 
++[5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++[10] sleep 1001& 
++smash> signal number 9 was sent to pid 11
++smash> signal number 9 was sent to pid 12
++smash> smash: got ctrl-C
++smash> smash> smash> [5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++[10] sleep 1001& 
++smash> smash> [5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++[10] sleep 1001& 
++[11] sleep 3& 
++smash> smash: got ctrl-C
++[5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++[10] sleep 1001& 
++[11] sleep 3& 
++smash> [5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++[10] sleep 1001& 
++[11] sleep 3& 
++smash> [5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++[10] sleep 1001& 
++[11] sleep 3& 
++smash> smash: got ctrl-C
++[5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++[10] sleep 1001& 
++[11] sleep 3& 
++smash> smash> smash: got ctrl-C
++[5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++[10] sleep 1001& 
++[11] sleep 3& 
++smash> smash> smash: got ctrl-C
++[5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++[10] sleep 1001& 
++[11] sleep 3& 
++smash> smash> smash: got ctrl-C
++[5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++[10] sleep 1001& 
++[11] sleep 3& 
++smash> smash> [5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++[10] sleep 1001& 
++[11] sleep 3& 
++[12] sleep 777& 
+ smash> smash: got ctrl-C
+-smash: process 20 was killed
++smash: process 13 was killed
+ smash> smash: got ctrl-C
+-smash: process 21 was killed
+-smash> smash> [1] sleep 777&
+-smash> smash> [1] sleep 777&
+-[2] sleep 100&
+-smash> sleep 100& 22
+-smash: got ctrl-C
+-smash: process 22 was killed
+-smash> smash: sending SIGKILL signal to 1 jobs:
+-23: sleep 777&
++smash: process 14 was killed
++smash> smash> [5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++[10] sleep 1001& 
++[12] sleep 777& 
++smash> smash> [5] sleep 500& 
++[6] sleep 600& 
++[7] sleep 700& 
++[8] sleep 800& 
++[9] sleep 900& 
++[10] sleep 1001& 
++[12] sleep 777& 
++[13] sleep 100& 
++smash> smash> smash: got ctrl-C
++smash: sending SIGKILL signal to 8 jobs:
++15: sleep 500& 
++16: sleep 600& 
++17: sleep 700& 
++18: sleep 800& 
++19: sleep 900& 
++20: sleep 1001& 
++21: sleep 777& 
++22: sleep 100& 
