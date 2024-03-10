@@ -609,27 +609,43 @@ void QuitCommand::execute()
 void KillCommand::execute()
 {
     const string cmd = _getTheRest(get_cmd_line()); //the commmand except the word kill.
+    pid_t target_pid;
+    
+    int jobId = 0;
+    try
+    {
+        jobId = stoi(_get_nth_word(cmd,2));
+        target_pid = SmallShell::getInstance().getPidById(jobId);
+        if (target_pid == 0)
+        {
+            smash_error("kill: job-id " + _get_nth_word(cmd,2) + " does not exist");
+            return;
+        }
+    }
+    catch(const std::exception& e)
+    {
+        smash_error("kill: invalid arguments");
+        return;
+    }
+    
     if (not _command_is_two_numbers(cmd))
     {
         smash_error("kill: invalid arguments");
         return;
     }
-    int signum = -stoi(_getFirstWord(cmd));
-    if (signum < MIN_SIGNUM || signum > MAX_SIGNUM) //TODO: is max signum correct?
-    {
-        smash_error("kill: invalid arguments");
-        return;
-    }
 
-    int jobId = stoi(_getTheRest(cmd));
-    pid_t target_pid = SmallShell::getInstance().getPidById(jobId);
-    if (target_pid == 0)
+    int signum = -stoi(_getFirstWord(cmd));
+    // if (signum < MIN_SIGNUM || signum > MAX_SIGNUM) //TODO: is max signum correct?
+    // {
+    //     smash_error("kill: invalid arguments");
+    //     return;
+    // }
+
+    if (kill(target_pid, signum) != 0)
     {
-        smash_error("kill: job-id " + std::to_string(jobId) + " does not exist");
+        perror("smash error: kill failed");
         return;
     }
-    kill(target_pid, signum);
-    // SmallShell::getInstance().deleteJob(jobId);
     std::cout << "signal number " << signum << " was sent to pid " << target_pid << endl;
 }
 
