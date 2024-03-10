@@ -1,4 +1,7 @@
-smash error: tail: invalid arguments
-smash error: tail: invalid arguments
-smash error: tail: invalid arguments
-smash error: tail: invalid arguments
+tail: cannot open '123' for reading: No such file or directory
+tail: cannot open 'aaa' for reading: No such file or directory
+tail: cannot open 'bbb' for reading: No such file or directory
+tail: cannot open 'aaa' for reading: No such file or directory
+tail: cannot open 'ccc' for reading: No such file or directory
+tail: cannot open 'bbb' for reading: No such file or directory
+tail: cannot open 'aaa' for reading: No such file or directory

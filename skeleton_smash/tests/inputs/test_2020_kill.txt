@@ -12,49 +12,49 @@ kill abc abc
 kill -abc abc
 kill 9 1
 kill -9 1
-^2
+^C
 kill -9 1
 jobs
 sleep 7&
-^1
+^C
 kill -90 1
 jobs
 sleep 5&
 jobs
 sleep 3&
-^1
+^C
 jobs 5
 kill -not_a_number 1
 kill -9 1 2 3
-^9
+^C
 jobs
 sleep 10 &
-^3
+^C
 jobs
 kill -9 1
-^1
+^C
 jobs junk_argument
 sleep 5&
-^1
+^C
           sleep        10   &
-^1
+^C
 sleep 15
-^1
-^Z
+^C
+^C
 jobs
 kill -9 1
-^1
+^C
 jobs
 kill -9 2
-^1
+^C
 jobs
 kill -9 3
-^1
+^C
 jobs
 sleep 20&
 sleep 10
-^2
+^C
 ^C
 kill -9 1
-^1
+^C
 quit kill

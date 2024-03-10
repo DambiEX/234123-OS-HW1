@@ -1,3 +1,2 @@
-smash error: tail: invalid arguments
-smash error: open failed: No such file or directory
-smash error: open failed: No such file or directory
+tail: cannot open 'fail.txt' for reading: No such file or directory
+tail: cannot open 'fail.txt' for reading: No such file or directory

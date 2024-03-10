@@ -3,9 +3,9 @@ chprompt hello
 sleep 2
 sleep 3
 sleep 5&
-^6
+^C
 chprompt
 sleep 10&
 sleep 11
-^9
+^C
 quit kill

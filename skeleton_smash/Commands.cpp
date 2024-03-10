@@ -399,11 +399,13 @@ void JobsList::addJob(std::string cmd, pid_t pid) {
 }
 
 int JobsList::get_new_id() {
+    int max = 0;
     for (int i = 1; i < MAX_JOBS-1; ++i) {
-        if (jobs[i] == nullptr){
-            return i;
+        if (jobs[i] != nullptr){
+            max = i;
         }
     }
+    return max+1;
     throw;
 }
 
@@ -657,7 +659,7 @@ void ExternalCommand::execute()
         return;
     }
     else if (new_pid > 0){ // parent
-        if(not get_cmd_line().empty()){
+        if(not (get_cmd_line().size() < 2)){
             smash.addJob(get_name(), new_pid);
             if (run_in_foreground())
             {
@@ -668,6 +670,10 @@ void ExternalCommand::execute()
     }
     else{ // child's code:
         setpgrp();
+        if (get_cmd_line().size() < 2)
+        {
+            exit(0);
+        }
         char cmd_args[COMMAND_MAX_ARGS+1];
         strcpy(cmd_args, this->get_cmd_line().c_str());
         if (check_complex_command(get_cmd_line())){
@@ -699,7 +705,7 @@ void ExternalCommand::execute()
             if (execvp(args[0], args) == -1)
             {
                 cerr << "smash error: execvp failed" << endl;
-                return;
+                exit(0);
             }
         }
     }

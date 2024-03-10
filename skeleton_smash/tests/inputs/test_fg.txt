@@ -1,6 +1,5 @@
 sleep 1&
 sleep 1&
 fg
-^2
-fg 1
+^C
 quit

@@ -1,4 +1,0 @@
-should_not_be_f/bin/bash
-should_be_filte/bin/bash
-terminate called after throwing an instance of 'std::out_of_range'
-  what():  basic_string::substr: __pos (which is 18446744073709551615) > this->size() (which is 1)

@@ -1,4 +1,4 @@
 sleep 5&
-^1
+^C
 sleep 5
 quit kill
