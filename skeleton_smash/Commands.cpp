@@ -681,14 +681,22 @@ void ExternalCommand::execute()
                 cerr << "smash error: execvp failed" << endl;
                 return;
             }
-
         }
         else{
-            char bash_path[COMMAND_ARGS_MAX_LENGTH+1];
-            char *args[] = {bash_path, cmd_args};
-            strcpy(bash_path, this->get_cmd_line().c_str());
-            string firstWord = _getFirstWord(get_cmd_line());
-            if (execv(firstWord.c_str(), args) == -1)
+            std::string args_str = this->get_cmd_line();
+            if (not run_in_foreground())
+            {
+                args_str = _trim(args_str).substr(0, args_str.size() - 2);
+            }
+            
+            char* args[COMMAND_ARGS_MAX_LENGTH+1];
+            size_t i = 1;
+            for (;not _get_nth_word(args_str,i).empty(); i++)
+            {
+                args[i-1] = strdup(_get_nth_word(args_str,i).c_str());
+                args[i] = NULL;
+            }
+            if (execvp(args[0], args) == -1)
             {
                 cerr << "smash error: execvp failed" << endl;
                 return;
@@ -696,6 +704,7 @@ void ExternalCommand::execute()
         }
     }
 }
+
 
 bool isValidOctal(const std::string& str) {
     if (str.size() != 3)
