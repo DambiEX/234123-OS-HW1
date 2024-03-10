@@ -13,11 +13,7 @@ smash error: execvp failed: No such file or directory
 smash error: execvp failed: No such file or directory
 smash error: execvp failed: No such file or directory
 smash error: kill: job-id 1 does not exist
-smash error: kill: job-id 1 does not exist
 smash error: fg: job-id 4 does not exist
 smash error: execvp failed: No such file or directory
 smash error: fg: job-id 1 does not exist
-sleep: missing operand
-Try 'sleep --help' for more information.
-smash error: fg: jobs list is empty
 smash error: execvp failed: No such file or directory

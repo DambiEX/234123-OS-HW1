@@ -11,16 +11,9 @@ smash error: kill: invalid arguments
 smash error: kill: invalid arguments
 smash error: kill: invalid arguments
 smash error: kill: job-id 1 does not exist
-sleep: missing operand
-Try 'sleep --help' for more information.
 smash error: kill: invalid arguments
-sleep: missing operand
-sleep: missing operandTry 'sleep --help' for more information.
-
-Try 'sleep --help' for more information.
 smash error: kill: invalid arguments
 smash error: kill: job-id 1 does not exist
-sleep: missing operand
-Try 'sleep --help' for more information.
-smash error: kill: job-id 2 does not exist
+smash error: kill: job-id 1 does not exist
 smash error: kill: job-id 3 does not exist
+smash error: kill: job-id 1 does not exist

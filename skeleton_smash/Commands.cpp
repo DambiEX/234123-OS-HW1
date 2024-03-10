@@ -118,7 +118,7 @@ string _getLastChar(const string input){
 bool _command_is_two_numbers(string input){
     string first_word = _get_nth_word(input,1);
     string second_word = _get_nth_word(input,2);
-    if (first_word.empty() || second_word.empty())
+    if (first_word.empty() || second_word.empty() || (not (_get_nth_word(input,3).empty())))
     {
         return false;
     }
@@ -437,7 +437,7 @@ void JobsList::printJobsList() const{
     for (unsigned int i=0; i<jobs.size(); i++){
         if (jobs[i])
         {
-            std::cout << "[" << jobs[i]->get_id() << "] " << _trim(jobs[i]->get_command_name()) << endl;
+            std::cout << "[" << jobs[i]->get_id() << "] " << _rtrim(jobs[i]->get_command_name()) << endl;
         }
     }
 }
@@ -468,7 +468,7 @@ bool Command::run_in_foreground()
 
 std::string Command::get_name() const
 {
-    return _trim(cmd_line);
+    return _rtrim(cmd_line);
 }
 
 //--------------------------------BUILT-IN COMMANDS-----------------------//
@@ -725,7 +725,7 @@ void ExternalCommand::execute()
             std::string args_str = this->get_cmd_line();
             if (not run_in_foreground())
             {
-                args_str = _trim(args_str).substr(0, _trim(args_str).size() - 2);
+                args_str = _trim(args_str).substr(0, _trim(args_str).size() - 1);
             }
             
             char* args[COMMAND_ARGS_MAX_LENGTH+1];

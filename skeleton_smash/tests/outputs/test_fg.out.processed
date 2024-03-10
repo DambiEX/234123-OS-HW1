@@ -1,2 +1,4 @@
-smash> smash> smash> sleep 1& 31820
-smash> smash: got ctrl-C
+smash> smash> smash> sleep 1& 2
+smash: got ctrl-C
+smash: process 2 was killed
+smash> 
