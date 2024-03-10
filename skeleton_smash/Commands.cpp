@@ -210,7 +210,7 @@ void SmallShell::executeCommand(std::string cmd_line) {
     std::shared_ptr<Command> cmd = CreateCommand(cmd_line_edit);
     if (!cmd){throw;}
     cmd->execute();
-    
+
     defaultIO(cout_fd);
 }
 
@@ -310,7 +310,7 @@ int SmallShell::setIO(std::string cmd_line)
     {
         return -1;
     }
-    
+
     if (piping) return setPipe(redirection_type, cmd_line);
 
     string output_path = _trim(cmd_line.substr(pos+redirection_type));
@@ -608,7 +608,7 @@ int SmallShell::setPipe(int redirection_type,  std::string cmd_line)
     int pos = cmd_line.find("|");
     int my_pipe[2];
     int pipe_worked = pipe(my_pipe);
-    if (pipe_worked)    
+    if (pipe_worked)
     {
         pid_t new_pid = fork();
         if (new_pid < 0){
@@ -625,7 +625,7 @@ int SmallShell::setPipe(int redirection_type,  std::string cmd_line)
             close(STDIN_FILENO);
             dup2(old_cout, STDIN_FILENO);
             close(old_cout);
-            return ERROR_FD;      
+            return ERROR_FD;
         }
         else
         {
@@ -639,12 +639,18 @@ int SmallShell::setPipe(int redirection_type,  std::string cmd_line)
         }
     }
     else perror("pipe creation failed"); //TODO: error code
-    return -1;     
+    return -1;
+}
+
+bool check_complex_command (const string cmd_line) {
+    if(cmd_line.find("?") != std::string::npos || cmd_line.find("*") != std::string::npos)
+        return true;
+    return false;
 }
 
 void ExternalCommand::execute()
 {
-    SmallShell &smash = SmallShell::getInstance();    
+    SmallShell &smash = SmallShell::getInstance();
     pid_t new_pid = fork();
     if (new_pid < 0){
         perror("smash error: fork failed");
@@ -662,18 +668,31 @@ void ExternalCommand::execute()
     }
     else{ // child's code:
         setpgrp();
-        sleep(stoi(_get_nth_word(get_cmd_line(),2)));
         char cmd_args[COMMAND_MAX_ARGS+1];
         strcpy(cmd_args, this->get_cmd_line().c_str());
-        char bash_path[COMMAND_ARGS_MAX_LENGTH+1];
-        strcpy(bash_path, SMASH_BASH_PATH);
-        char c_arg[COMMAND_ARGS_MAX_LENGTH+1];
-        strcpy(c_arg, SMASH_C_ARG);
-        char *args[] = {bash_path, c_arg, cmd_args, NULL};
-        if (execvp(SMASH_BASH_PATH, args) == -1)
-        {
-            cerr << "smash error: execvp failed" << endl;
-            return;
+        if (check_complex_command(get_cmd_line())){
+            char bash_path[COMMAND_ARGS_MAX_LENGTH+1];
+            strcpy(bash_path, SMASH_BASH_PATH);
+            char c_arg[COMMAND_ARGS_MAX_LENGTH+1];
+            strcpy(c_arg, SMASH_C_ARG);
+            char *args[] = {bash_path, c_arg, cmd_args, NULL};
+            if (execvp(SMASH_BASH_PATH, args) == -1)
+            {
+                cerr << "smash error: execvp failed" << endl;
+                return;
+            }
+
+        }
+        else{
+            char bash_path[COMMAND_ARGS_MAX_LENGTH+1];
+            char *args[] = {bash_path, cmd_args};
+            strcpy(bash_path, this->get_cmd_line().c_str());
+            string firstWord = _getFirstWord(get_cmd_line());
+            if (execv(firstWord.c_str(), args) == -1)
+            {
+                cerr << "smash error: execvp failed" << endl;
+                return;
+            }
         }
     }
 }
@@ -683,7 +702,7 @@ bool isValidOctal(const std::string& str) {
     {
         return false;
     }
-    
+
     for (char c : str) {
         if (c < '0' || c > '7')
             return false;
@@ -705,13 +724,13 @@ void ChmodCommand::execute()
     if (! isValidOctal(second_word))
     {
         smash_error("chmod: invalid aruments");
-        return;    
+        return;
     }
-    
+
     if (second_word.empty())
     {
         smash_error("chmod: invalid aruments");
-        return;    
+        return;
     }
     try
     {
