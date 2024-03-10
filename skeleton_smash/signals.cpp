@@ -6,10 +6,10 @@
 using namespace std;
 
 void ctrlCHandler(int sig_num) {
-  // TODO: Add your implementation
+  SmallShell::getInstance().ctrlCHandler(sig_num);
 }
 
 void alarmHandler(int sig_num) {
-  // TODO: Add your implementation
+  cout << "smash: got an alarm" << endl;
 }
 

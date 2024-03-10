@@ -259,6 +259,21 @@ void SmallShell::killall()
     jobsList.killAllJobs();
 }
 
+void SmallShell::set_fg_pid(pid_t pid)
+{
+    fg_pid = pid;
+}
+
+void SmallShell::ctrlCHandler(int sig_num)
+{
+    cout << "smash: got ctrl-C" << endl;
+    if (fg_pid)
+    {
+    cout << "smash: process " << fg_pid << " was killed" << endl;
+    kill(fg_pid, SIGKILL);
+    }
+}
+
 std::shared_ptr<JobsList::JobEntry> SmallShell::getJobById(int Id)
 {
     return jobsList.getJobById(Id);
@@ -377,7 +392,7 @@ void JobsList::delete_job_by_id(int jobId)
     jobs.erase(jobs.begin() + jobId);
 }
 
-void JobsList::delete_finished_jobs() {
+void JobsList::delete_finished_jobs(bool alarm) {
     pid_t child_pid;
     int status;
     do
@@ -386,6 +401,10 @@ void JobsList::delete_finished_jobs() {
         if (child_pid > 0)
         {
             delete_job_by_pid(child_pid);
+            // if (alarm)
+            // {
+            //     /* code */
+            // }
         }
     } while (child_pid > 0); //while we deleted a child, so maybe there are more left.
 }
@@ -560,7 +579,9 @@ void ForegroundCommand::execute()
     else
     {
         std::cout << job->get_command_name() << job->get_pid() << endl;
-        waitpid(job->get_pid(),nullptr,0);
+        SmallShell::getInstance().set_fg_pid(job->get_pid());
+        waitpid(job->get_pid(),nullptr,0); //signal may be received here
+        SmallShell::getInstance().set_fg_pid(0);
         SmallShell::getInstance().deleteJob(job->get_pid());
     }
 }
@@ -663,7 +684,9 @@ void ExternalCommand::execute()
             smash.addJob(get_name(), new_pid);
             if (run_in_foreground())
             {
-                waitpid(new_pid, NULL, 0);
+                smash.set_fg_pid(new_pid);
+                waitpid(new_pid, NULL, 0); //signal may be received here
+                smash.set_fg_pid(0);
                 smash.deleteJob(new_pid);
             }
         }
