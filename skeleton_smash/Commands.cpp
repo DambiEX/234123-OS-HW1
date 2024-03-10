@@ -377,6 +377,10 @@ std::string JobsList::JobEntry::get_command_name() {
 
 std::shared_ptr<JobsList::JobEntry> JobsList::getJobById(int jobId)
 {
+    if (jobId < 0)
+    {
+        return nullptr;
+    }
     return jobs[jobId];
 }
 
