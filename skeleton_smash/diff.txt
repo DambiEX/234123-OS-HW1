@@ -1,4 +1,4 @@
-1c1
-< smash> smash> smash>  pid is 75759
+12c12
+< smash error: kill failed: Invalid argument
 ---
-> smash> smash> smash pid is 1
+> smash error: kill: invalid arguments

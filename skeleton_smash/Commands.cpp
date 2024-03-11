@@ -317,10 +317,10 @@ int SmallShell::setIO(std::string cmd_line)
 {
     int piping = not PIPE;
     __SIZE_TYPE__ pos = cmd_line.find(">");
-    if (not pos)
+    if (pos == std::string::npos)
     {
         pos = cmd_line.find("|");
-        if (pos)
+        if (pos != std::string::npos)
         {
             piping = PIPE;
         }
@@ -330,7 +330,6 @@ int SmallShell::setIO(std::string cmd_line)
     {
         return -1;
     }
-
     if (piping) return setPipe(redirection_type, cmd_line);
 
     string output_path = _trim(cmd_line.substr(pos+redirection_type));
@@ -340,7 +339,7 @@ int SmallShell::setIO(std::string cmd_line)
         fd = open(output_path.c_str(), O_CREAT | O_WRONLY | O_APPEND, 0755);
     }
     else{ //> overwrite
-        fd = open(output_path.c_str(), O_CREAT | O_WRONLY, 0755);
+        fd = open(output_path.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0755);
     }
     dup2(fd, STDOUT_FILENO);
     close(fd);
@@ -662,7 +661,7 @@ int SmallShell::setPipe(int redirection_type,  std::string cmd_line)
     int pos = cmd_line.find("|");
     int my_pipe[2];
     int pipe_worked = pipe(my_pipe);
-    if (pipe_worked)
+    if (pipe_worked == 0)
     {
         pid_t new_pid = fork();
         if (new_pid < 0){
