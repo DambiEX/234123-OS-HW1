@@ -1,6 +1,4 @@
 1c1
-< smash> smash> smash> 
-\ No newline at end of file
+< smash> smash> smash>  pid is 75759
 ---
-> smash> smash> smash> smash> smash> smash> 
-\ No newline at end of file
+> smash> smash> smash pid is 1

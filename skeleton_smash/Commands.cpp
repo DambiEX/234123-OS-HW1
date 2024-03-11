@@ -496,7 +496,7 @@ void ChangePromptCommand::execute() {
 * Creates and returns a pointer to Command class which matches the given command line (cmd_line)
 */
 void ShowPidCommand::execute() {
-    smash_print(PID_IS + std::to_string(getpid()));
+    std::cout << std::string(PID_IS + std::to_string(getpid())) << endl;
 }
 
 void GetCurrDirCommand::execute() {
@@ -564,11 +564,7 @@ void ForegroundCommand::execute()
             job_id = SmallShell::getInstance().get_max_id();
         }
     }
-    if (not _get_nth_word(get_cmd_line(), 3).empty()) // string has more than 2 words
-    {
-        smash_error("fg: invalid arguments");
-        return;
-    }
+    
 
     //string is exactly 2 words long, and the first word is "fg"
     if (job_id == 0)
@@ -589,8 +585,13 @@ void ForegroundCommand::execute()
     if (job == nullptr)
     {
         smash_error("fg: job-id " + std::to_string(job_id) + " does not exist");
+        return;
     }
-    else
+    if (not _get_nth_word(get_cmd_line(), 3).empty()) // string has more than 2 words
+    {
+        smash_error("fg: invalid arguments");
+        return;
+    }
     {
         std::cout << job->get_command_name() << " " << job->get_pid() << endl;
         SmallShell::getInstance().set_fg_pid(job->get_pid());

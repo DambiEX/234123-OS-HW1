@@ -7,7 +7,7 @@
 #define ERROR_PROMPT std::string("smash error: ")
 #define DEFAULT_PROMPT std::string("smash")
 #define PROMPT_SUFFIX std::string("> ")
-#define PID_IS std::string(" pid is ")
+#define PID_IS std::string("smash pid is ")
 #define MAX_JOBS 110
 #define COMMAND_ARGS_MAX_LENGTH (200)
 #define COMMAND_MAX_ARGS (20)
