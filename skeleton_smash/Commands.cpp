@@ -380,7 +380,28 @@ std::shared_ptr<JobsList::JobEntry> JobsList::getJobById(int jobId)
     {
         return nullptr;
     }
-    return jobs[jobId];
+    for (unsigned int i = 0; i < jobs.size()-1; ++i) {
+        if (jobs[i] != nullptr && jobs[i]->get_id() == jobId){
+            return jobs[i];
+        }
+    }
+    return nullptr;
+}
+
+bool JobsList::compareById(std::shared_ptr<JobEntry> &a, std::shared_ptr<JobEntry> &b)
+{
+    if ((not a) && (not b)) {
+        return false;
+    }
+    if (not a)
+    {
+        return false;
+    }
+    if (not b)
+    {
+        return true;
+    }
+    return a->get_id() < b->get_id();
 }
 
 void JobsList::delete_job_by_pid(pid_t pid){
@@ -416,14 +437,27 @@ void JobsList::delete_finished_jobs(bool alarm) {
 JobsList::JobsList() : jobs(MAX_JOBS, nullptr) {}
 
 void JobsList::addJob(std::string cmd, pid_t pid) {
+    std::sort(jobs.begin(), jobs.end(), compareById);
     if (cmd.empty()){throw(std::exception());} //TODO: exception syntax
     int new_id = get_new_id();
-    jobs[new_id] = (std::shared_ptr<JobEntry>(new JobEntry(new_id, pid, cmd)));
+    int open_spot = get_open_spot();
+    jobs[open_spot] = (std::shared_ptr<JobEntry>(new JobEntry(new_id, pid, cmd)));
 }
 
 int JobsList::get_new_id() {
     int max = 0;
-    for (int i = 1; i < MAX_JOBS-1; ++i) {
+    for (unsigned int i = 0; i < jobs.size()-1; ++i) {
+        if (jobs[i] != nullptr){
+            max = jobs[i]->get_id();
+        }
+    }
+    return max+1;
+    throw;
+}
+
+int JobsList::get_open_spot() {
+    int max = 0;
+    for (unsigned int i = 1; i < jobs.size()-1; ++i) {
         if (jobs[i] != nullptr){
             max = i;
         }

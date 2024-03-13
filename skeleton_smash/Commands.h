@@ -152,6 +152,7 @@ public:
     std::vector<std::shared_ptr<JobEntry>> jobs;
 
     int get_new_id();
+    int get_open_spot();
     void delete_job_by_pid(pid_t pid);
     void delete_job_by_id(int jobId);
     void delete_finished_jobs(bool alarm = false);
@@ -170,6 +171,7 @@ public:
 
     std::shared_ptr<JobEntry> getJobById(int jobId);
     std::shared_ptr<JobEntry> getJobByPid(const int& jobPid) const;
+    static bool compareById(std::shared_ptr<JobEntry> &a, std::shared_ptr<JobEntry> &b);
     void removeJobById(int jobId);
 
     std::shared_ptr<JobsList> getLastJob(int *lastJobId);
