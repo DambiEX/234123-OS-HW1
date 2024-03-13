@@ -409,10 +409,6 @@ void JobsList::delete_finished_jobs(bool alarm) {
         if (child_pid > 0)
         {
             delete_job_by_pid(child_pid);
-            // if (alarm)
-            // {
-            //     /* code */
-            // }
         }
     } while (child_pid > 0); //while we deleted a child, so maybe there are more left.
 }
@@ -437,7 +433,7 @@ int JobsList::get_new_id() {
 }
 
 void JobsList::printJobsList() const{
-    for (unsigned int i=0; i<jobs.size(); i++){
+    for (unsigned int i=0; i<MAX_JOBS-1; i++){
         if (jobs[i])
         {
             std::cout << "[" << jobs[i]->get_id() << "] " << _rtrim(jobs[i]->get_command_name()) << endl;
@@ -639,11 +635,6 @@ void KillCommand::execute()
     }
 
     int signum = -stoi(_getFirstWord(cmd));
-    // if (signum < MIN_SIGNUM || signum > MAX_SIGNUM) //TODO: is max signum correct?
-    // {
-    //     smash_error("kill: invalid arguments");
-    //     return;
-    // }
 
     if (kill(target_pid, signum) != 0)
     {

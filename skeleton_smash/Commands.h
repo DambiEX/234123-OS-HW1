@@ -142,11 +142,9 @@ public:
         std::string cmd;
     public:
         explicit JobEntry(int id, pid_t pid, std::string cmd) : id(id),pid(pid), cmd(cmd) {}
-//        JobEntry(JobEntry const &) = delete; //disable copy ctor
 
         int get_id() const;
         int get_pid() const;
-        // bool is_deleted();
         std::string get_command_name();
         int operator==(JobEntry const &) const;
     };
@@ -160,7 +158,7 @@ public:
 public:
     JobsList();
 
-    ~JobsList() = default; //TODO: memory management?
+    ~JobsList() = default;
 
     void addJob(std::string cmd, pid_t pid);
 
@@ -177,7 +175,6 @@ public:
     std::shared_ptr<JobsList> getLastJob(int *lastJobId);
 
     JobEntry *getLastStoppedJob(int *jobId);
-    // TODO: Add extra methods or modify exisitng ones as needed
 };
 
 class JobsCommand : public BuiltInCommand {
@@ -225,12 +222,13 @@ private:
     std::string prev_path;
     JobsList jobsList;
     SmallShell(); // ctor
+
     void delete_finished_jobs();
+
     int setIO(std::string cmd_line);
     void defaultIO(int cout_fd);
     int setPipe(int redirection_type, std::string cmd_line);
     std::string trim_for_pipe(std::string cmd_line);
-    // int get_redirection_type(std::string cmd_line, __SIZE_TYPE__ pos, bool pipe=false);
 public:
     std::shared_ptr<Command> CreateCommand(std::string cmd_line);
 
@@ -263,6 +261,7 @@ public:
     void printJobs() const;
     void killall();
     void set_fg_pid(pid_t pid);
+
     void ctrlCHandler(int sig_num);
 };
 
